@@ -35,7 +35,7 @@ shinyServer(function(input, output) {
     }
     g <- ggplot(data = as.data.frame(p),aes(p))
     g <- g + geom_histogram(binwidth=1/bars,fill=rgb(1, 0, 0,0.5),col='black',boundary=0)
-    g <- g + xlab('p-values') + ylab('count of p-values')
+    g <- g + xlab('p-values') + ylab('Frequency of p-values')
     g <- g + coord_cartesian(xlim=c(0,x_max),ylim=c(0,y_max)) + theme_minimal(base_size = 18)
     g <- g + ggtitle(paste("P-value distribution for ",format(sims, nsmall=0)," one-sample two-sided t-tests with ",format(power*100, digits=3),"% power.",sep=""))
     g <- g + geom_hline(aes(yintercept = (0.05/a)*sims/bars, alpha = "Type 1 error rate", label = ""),lwd = 1.2, show.legend = T) + theme(plot.title = element_text(hjust = 0.5), legend.title=element_blank(), legend.position = "top") 
