@@ -13,7 +13,7 @@ library(shinythemes)
 shinyUI(fluidPage(theme = shinytheme('flatly'),
   
   # Application title
-  title = "P-Values Histrogram Of One Sample Two Sided Tests",
+  title = "P-Values Distribution",
   
   # siderbar inputs
   sidebarLayout(
