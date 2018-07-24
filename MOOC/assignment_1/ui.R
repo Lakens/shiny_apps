@@ -66,7 +66,7 @@ shinyUI(fluidPage(theme = shinytheme('flatly'),
       h4("This code simulates one-sample t-tests and plots the p-value distribution."),
       h4("It is Assignment 1.1 in my free Coursera MOOC ", a("Improving Your Statistical Inferences", href="https://www.coursera.org/learn/statistical-inferences")),
       h4("Initial version of this Shiny app created by ", a("George Papadopoulos", href="mailto:pgeorgios8@gmail.com")),
-      h4("Get the code at ", a("GitHub", href="https://github.com/Lakens/p-curves"))
+      h4("Get the code at ", a("GitHub", href="https://github.com/Lakens/shiny_apps/tree/master/MOOC/assignment_1"))
     ),
     # Show a plot of the generated distribution
     mainPanel(
