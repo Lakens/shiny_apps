@@ -38,7 +38,7 @@ shinyServer(function(input, output) {
     g <- g + xlab('p-values') + ylab('count of p-values')
     g <- g + coord_cartesian(xlim=c(0,x_max),ylim=c(0,y_max)) + theme_minimal(base_size = 18)
     g <- g + ggtitle(paste("P-value distribution for ",format(sims, nsmall=0)," one-sample two-sided t-tests with ",format(power*100, digits=3),"% power.",sep=""))
-    g <- g + geom_hline(aes(yintercept = (0.05/a)*sims/bars,alpha = a),lwd = 1.2, show.legend = F) + theme(plot.title = element_text(hjust = 0.5)) 
+    g <- g + geom_hline(aes(yintercept = (0.05/a)*sims/bars, alpha = "Type 1 error rate", label = ""),lwd = 1.2, show.legend = T) + theme(plot.title = element_text(hjust = 0.5), legend.title=element_blank(), legend.position = "top") 
     
     output$text1    <- renderText(
       paste('The power we get from the simulations is',toString(100*x),'%,the theoritical power is written in 
