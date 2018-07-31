@@ -1,5 +1,3 @@
-library(MBESS)
-
 server <- function(input, output) {
   #surpress warnings
   options(warn = -1)
@@ -107,14 +105,7 @@ server <- function(input, output) {
     VARd<-((N+N)/(N*N))+(d^2/(2*(N+N)))
     SEd<-sqrt(VARd)
     crit_d<-abs(qt(p_upper/2, (N*2)-2))/sqrt(N/2)
-    ncp<-(input$d*sqrt(N/2)) #Calculate non-centrality parameter d
-    p_upper<-input$p_upper
-    CI <- ci.smd(smd=d, 
-                 n.1=N, 
-                 n.2=N, 
-                 conf.level=(1-p_upper)
-                 )
-    paste("On the top, you can see the distribution of Cohen's d assuming a true effect size of d = ",d," illustrated by the black line. Only observed effect sizes larger than d = ",round(crit_d,2)," will be statisically significant with ",N," observations per group. The distribution assuming a Cohen's d of 0 is illustrated by the grey curve. Red areas illustrates Type 1 errors, the blue area illustrates the Type 2 error rate. The distribution has a standard error of ",round(SEd,3),". The ",1-p_upper,"% CI around d = ",d," is 95% CI[",format(CI$Lower.Conf.Limit.smd, digits=3),";",format(CI$Upper.Conf.Limit.smd, digits=3),"].",sep="")
+    paste("On the top, you can see the distribution of Cohen's d assuming a true effect size of d =",d,"illustrated by the black line. Only observed effect sizes larger than d =",round(crit_d,2),"will be statisically significant with",N,"observations per group. The distribution assuming a Cohen's d of 0 is illustrated by the grey curve. Red areas illustrates Type 1 errors, the blue area illustrates the Type 2 error rate. The distribution has a standard error of",round(SEd,3))
   })
   output$pow1 <- renderText({
     N<-input$N
