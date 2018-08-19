@@ -61,12 +61,6 @@ server <- function(input, output) {
   })
   
   #Result from the final choice
-  output$display_result1 <- renderText({
-    c("Result:", result1())
-  })
-  output$display_result2 <- renderText({
-    c("Result:", result2())
-  })
   output$means <- renderText({
     c("Means:", unlist(means()))
   })
@@ -94,16 +88,8 @@ server <- function(input, output) {
   })
   
   #Clicking the answer buttons will end the trial and store the data
-  result1 <- eventReactive(input$yesButton, {
-    answer<-1
-    return(answer)
-  })
-  result2 <- eventReactive(input$noButton, {
-    answer<-2
-    return(answer)
-  })
   #save data
-  observeEvent(input$yesButton,  {
+  observeEvent(c(input$noButton, input$yesButton),  {
     outputDir <- "responses"
     judgement <- 1
     data <- data.frame(judgement, condition(), effect_size(), means(), grouplist())
@@ -118,22 +104,7 @@ server <- function(input, output) {
       quote = FALSE
     )
   })
-  observeEvent(input$noButton,  {
-    outputDir <- "responses"
-    judgement <- 0
-    data <- data.frame(judgement, condition(), effect_size(), means(), grouplist())
-    # Create a unique file name
-    fileName <- sprintf("%s_%s.csv", as.integer(Sys.time()), digest::digest(data))
-    # Write the file to the local system
-    write.table(
-      x = data,
-      file = file.path(outputDir, fileName), 
-      row.names = FALSE, 
-      col.names = FALSE, 
-      quote = FALSE
-    )
-  })
-  
+
   data_results <- eventReactive(c(input$noButton, input$yesButton),  {
     #bind data into dataframe
     data_results <- data.frame(as.numeric(unlist(means())), as.numeric(unlist(grouplist())))
@@ -206,17 +177,11 @@ server <- function(input, output) {
              cex = 2)
     }
   })
+
+  #reset the app completely
   observeEvent(input$trialButton,  {
     js$reset()
   })
-  # effect_size <- eventReactive(input$trialButton, {
-  #   sd*1
-  # })
-  # condition <- eventReactive(input$trialButton, {
-  #   values$condition <- sample(c(0,1),1,1)
-  #   return(values$condition)
-  # })
-  
 }
 
 # Run the application 
