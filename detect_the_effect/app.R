@@ -18,7 +18,6 @@ ui <- fluidPage(
         h4("Click the button below to start a new trial. Your task is to guess whether there is a real effect, or not. You can do so be sampling data point. You will randomly see a datapint from a group represented by circles, or a group represented by squares. You can sample a data point, and it will randomly draw datapoints from either group, with a randomly determined effect size (which could be 0). If you feel sufficiently certain that there is a real difference or not, click on of the buttons at the bottom to store your choice. You can see if you were right, or not. If you want to try again, you can click the button to start a new trial."),
         actionButton("trialButton", "Start a New Data Collection Trial"),
         h4(uiOutput("display_effectsize")),
-        h4(uiOutput("display_condition")),
         actionButton("sampleButton", "Sample a new datapoint"),
         h4(uiOutput("displayCounter")),
         h4(uiOutput("display_group")),
@@ -38,10 +37,8 @@ server <- function(input, output) {
   min_x <- -10
   max_x <- 10
   
-  condition <- reactive({condition = sample(c(0,1),1,1)})
-  effect_size <- reactive({effect_size = sample(c(0.5,0.8,1),1,1)})
-#  data_results <- reactiveValues(m=data.frame(x=rnorm(n),y=rnorm(n)))
-  
+  effect_size <- reactive({effect_size = sample(c(0,0.5,0.8),1,1)})
+
   values <- reactiveValues(effect_size = 9, 
                            group = 1, 
                            means = list(),
@@ -52,9 +49,6 @@ server <- function(input, output) {
   })
   output$display_effectsize <- renderText({
     c("Effect Size:", effect_size())
-  })
-  output$display_condition <- renderText({
-    c("Condition (if 0, no difference, if 1, difference):", condition())
   })
   output$display_group <- renderText({
     c("Group:", group())
@@ -92,7 +86,7 @@ server <- function(input, output) {
   observeEvent(c(input$noButton, input$yesButton),  {
     outputDir <- "responses"
     judgement <- 1
-    data <- data.frame(judgement, condition(), effect_size(), means(), grouplist())
+    data <- data.frame(judgement, effect_size(), means(), grouplist())
     # Create a unique file name
     fileName <- sprintf("%s_%s.csv", as.integer(Sys.time()), digest::digest(data))
     # Write the file to the local system
@@ -128,14 +122,7 @@ server <- function(input, output) {
   })
   
   dif <- eventReactive(input$sampleButton, {
-    
-    if(condition() == 0){
-      x <- rnorm(n, 0, sd)
-    }
-    if(condition() == 1){
-      x <- rnorm(n, effect_size(), sd)
-    }
-    
+    x <- rnorm(n, effect_size(), sd)
     y <- rnorm(n, 0, sd)
     mean(x) - mean(y)
   })
