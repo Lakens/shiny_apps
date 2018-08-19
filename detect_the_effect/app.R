@@ -8,6 +8,14 @@ jsResetCode <- "shinyjs.reset = function() {history.go(0)}" # Define the js meth
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
+  
+  sd <- 1,
+  n <- 1,
+  min_x <- -10,
+  max_x <- 10,
+  
+  effect_size <- sample(c(0,0.5,0.8),1,0),
+  
   useShinyjs(), #add useShinyjs to be able to disable buttons upon making a choice.
   extendShinyjs(text = jsResetCode),
    # Application title
@@ -17,7 +25,7 @@ ui <- fluidPage(
       mainPanel(
         h4("Click the button below to start a new trial. Your task is to guess whether there is a real effect, or not. You can do so be sampling data point. You will randomly see a datapint from a group represented by circles, or a group represented by squares. You can sample a data point, and it will randomly draw datapoints from either group, with a randomly determined effect size (which could be 0). If you feel sufficiently certain that there is a real difference or not, click on of the buttons at the bottom to store your choice. You can see if you were right, or not. If you want to try again, you can click the button to start a new trial."),
         actionButton("trialButton", "Start a New Data Collection Trial"),
-        h4(uiOutput("display_effectsize")),
+        h4(effect_size),
         actionButton("sampleButton", "Sample a new datapoint"),
         h4(uiOutput("displayCounter")),
         h4(uiOutput("display_group")),
@@ -32,12 +40,7 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-  sd <- 1
-  n <- 1
-  min_x <- -10
-  max_x <- 10
-  
-  effect_size <- reactive({effect_size = sample(c(0,0.5,0.8),1,1)})
+
 
   #Is the part below needed? Test is it can be deleted
   values <- reactiveValues(effect_size = 9, 
@@ -48,9 +51,7 @@ server <- function(input, output) {
   output$displayCounter <- renderText({
     c("Number of Datapoints Sampled:", updateCounter())
   })
-  output$display_effectsize <- renderText({
-    c("Effect Size:", effect_size())
-  })
+
   output$display_group <- renderText({
     c("Group:", group())
   })
@@ -106,9 +107,9 @@ server <- function(input, output) {
     d <- z$stat[[1]] * sqrt(sum(grouplist()==1)+sum(grouplist()==2))/sqrt(sum(grouplist()==1)*sum(grouplist()==2))
     obs_power <- pwr.t.test(d=d,n=round((sum(grouplist()==1)+sum(grouplist()==2))/2),sig.level=0.05,type="two.sample")$power
     judgement <- ifelse(input$noButton == 0,0,1) #set judgment to 0 if no is pressed, to 1 if yes is pressed.
-    correct <- ifelse(judgement == 0 & effect_size() == 0 | judgement == 1 & effect_size() > 0,"You made the correct choice","You did not make the correct choice")
+    correct <- ifelse(judgement == 0 & effect_size == 0 | judgement == 1 & effect_size > 0,"You made the correct choice","You did not make the correct choice")
     #Give results
-    out <- paste(correct," because the true effect size in the population we are simulating data from was ",effect_size(),". The null hypothesis significance test was ",testoutcome,", t(",round(z$parameter[[1]], digits=2),") = ",format(z$stat[[1]], digits = 3, nsmall = 3, scientific = FALSE),", p = ",format(z$p.value[[1]], digits = 3, nsmall = 3, scientific = FALSE),", given an alpha of 0.05. Based on the data you sampled you had ",100*round(obs_power,2),"% power to detect a difference, based on an observed effect size of d = ",round(d,2),".",sep="")
+    out <- paste(correct," because the true effect size in the population we are simulating data from was ",effect_size,". The null hypothesis significance test was ",testoutcome,", t(",round(z$parameter[[1]], digits=2),") = ",format(z$stat[[1]], digits = 3, nsmall = 3, scientific = FALSE),", p = ",format(z$p.value[[1]], digits = 3, nsmall = 3, scientific = FALSE),", given an alpha of 0.05. Based on the data you sampled you had ",100*round(obs_power,2),"% power to detect a difference, based on an observed effect size of d = ",round(d,2),".",sep="")
     #results <- list(out = out, d = d, obs_power = obs_power)
     return(out)
   })
@@ -116,7 +117,7 @@ server <- function(input, output) {
     observeEvent(c(input$noButton, input$yesButton),  {
       outputDir <- "responses"
       judgement <- ifelse(input$noButton == 0,0,1) #set judgment to 0 if no is pressed, to 1 if yes is pressed.
-      data <- data.frame(judgement, effect_size(), means(), grouplist())
+      data <- data.frame(judgement, effect_size, means(), grouplist())
       # Create a unique file name
       fileName <- sprintf("%s_%s.csv", as.integer(Sys.time()), digest::digest(data))
       # Write the file to the local system
@@ -138,7 +139,7 @@ server <- function(input, output) {
       y <- rnorm(n, 0, sd)
     }
     if(group() == 2){
-      y <- rnorm(n, effect_size(), sd)
+      y <- rnorm(n, effect_size, sd)
     }
     x <- rnorm(n, 0, sd)
     mean(x) - mean(y)
