@@ -21,6 +21,7 @@ ui <- fluidPage(
         h4(uiOutput("display_condition")),
         actionButton("sampleButton", "Sample a new datapoint"),
         h4(uiOutput("displayCounter")),
+        h4(uiOutput("display_group")),
         h4(uiOutput("means")),
         h4(uiOutput("grouplist")),
         plotOutput("Plot"),
@@ -37,8 +38,8 @@ server <- function(input, output) {
   min_x <- -10
   max_x <- 10
   
-#  condition <- reactive({condition = sample(c(0,1),1,1)})
-  effect_size <- reactive({effect_size = sample(c(0, 0.5, 0.8),1,1)})
+  condition <- reactive({condition = sample(c(0,1),1,1)})
+  effect_size <- reactive({effect_size = sample(c(0.5,0.8,1),1,1)})
 #  data_results <- reactiveValues(m=data.frame(x=rnorm(n),y=rnorm(n)))
   
   values <- reactiveValues(effect_size = 9, 
@@ -52,9 +53,9 @@ server <- function(input, output) {
   output$display_effectsize <- renderText({
     c("Effect Size:", effect_size())
   })
-  # output$display_condition <- renderText({
-  #   c("Condition (if 0, no difference, if 1, difference):", condition())
-  # })
+  output$display_condition <- renderText({
+    c("Condition (if 0, no difference, if 1, difference):", condition())
+  })
   output$display_group <- renderText({
     c("Group:", group())
   })
@@ -105,7 +106,7 @@ server <- function(input, output) {
   observeEvent(input$yesButton,  {
     outputDir <- "responses"
     judgement <- 1
-    data <- data.frame(judgement, effect_size(), means(), grouplist())
+    data <- data.frame(judgement, condition(), effect_size(), means(), grouplist())
     # Create a unique file name
     fileName <- sprintf("%s_%s.csv", as.integer(Sys.time()), digest::digest(data))
     # Write the file to the local system
@@ -120,7 +121,7 @@ server <- function(input, output) {
   observeEvent(input$noButton,  {
     outputDir <- "responses"
     judgement <- 0
-    data <- data.frame(judgement, effect_size(), means(), grouplist())
+    data <- data.frame(judgement, condition(), effect_size(), means(), grouplist())
     # Create a unique file name
     fileName <- sprintf("%s_%s.csv", as.integer(Sys.time()), digest::digest(data))
     # Write the file to the local system
@@ -133,24 +134,7 @@ server <- function(input, output) {
     )
   })
   
-  data_results <- eventReactive(input$noButton,  {
-    #bind data into dataframe
-    data_results <- data.frame(as.numeric(unlist(means())), as.numeric(unlist(grouplist())))
-    colnames(data_results) <- c("means", "grouplist")
-    #Perform t-test and save as z
-    z <- t.test(means ~ grouplist, data_results, var.equal = TRUE)
-    #Is test significant or not?
-    testoutcome<-ifelse(z$p.value<.05,"significant","non-significant")
-    #Calculate Cohen's d
-    d <- z$stat[[1]] * sqrt(sum(grouplist()==1)+sum(grouplist()==2))/sqrt(sum(grouplist()==1)*sum(grouplist()==2))
-    obs_power <- pwr.t.test(d=d,n=round((sum(grouplist()==1)+sum(grouplist()==2))/2),sig.level=0.05,type="two.sample")$power
-    #Give results
-    out <- paste("The null hypothesis significance test was ",testoutcome,", t(",round(z$parameter[[1]], digits=2),") = ",format(z$stat[[1]], digits = 3, nsmall = 3, scientific = FALSE),", p = ",format(z$p.value[[1]], digits = 3, nsmall = 3, scientific = FALSE),", given an alpha of 0.05. Based on the data you sampled you had ",round(obs_power,2),"% power to detect a difference, based on an observed effect size of d = ",round(d,2),".",sep="")
-    #results <- list(out = out, d = d, obs_power = obs_power)
-    return(out)
-  })
-  
-  data_results <- eventReactive(input$yesButton,  {
+  data_results <- eventReactive(c(input$noButton, input$yesButton),  {
     #bind data into dataframe
     data_results <- data.frame(as.numeric(unlist(means())), as.numeric(unlist(grouplist())))
     colnames(data_results) <- c("means", "grouplist")
@@ -173,7 +157,14 @@ server <- function(input, output) {
   })
   
   dif <- eventReactive(input$sampleButton, {
-    x <- rnorm(n, effect_size(), sd)
+    
+    if(condition() == 0){
+      x <- rnorm(n, 0, sd)
+    }
+    if(condition() == 1){
+      x <- rnorm(n, effect_size(), sd)
+    }
+    
     y <- rnorm(n, 0, sd)
     mean(x) - mean(y)
   })
