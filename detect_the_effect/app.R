@@ -39,6 +39,7 @@ server <- function(input, output) {
   
   effect_size <- reactive({effect_size = sample(c(0,0.5,0.8),1,1)})
 
+  #Is the part below needed? Test is it can be deleted
   values <- reactiveValues(effect_size = 9, 
                            group = 1, 
                            means = list(),
@@ -73,33 +74,27 @@ server <- function(input, output) {
   
   #Disable buttons (except new trial button) after choice is made
   observeEvent(input$noButton,  {
+    shinyjs::disable("noButton")
     shinyjs::disable("yesButton")
     shinyjs::disable(id = "sampleButton")
   })
   observeEvent(input$yesButton,  {
     shinyjs::disable("noButton")
+    shinyjs::disable("yesButton")
     shinyjs::disable(id = "sampleButton")
   })
   
   #Clicking the answer buttons will end the trial and store the data
-  #save data
-  observeEvent(c(input$noButton, input$yesButton),  {
-    outputDir <- "responses"
-    judgement <- 1
-    data <- data.frame(judgement, effect_size(), means(), grouplist())
-    # Create a unique file name
-    fileName <- sprintf("%s_%s.csv", as.integer(Sys.time()), digest::digest(data))
-    # Write the file to the local system
-    write.table(
-      x = data,
-      file = file.path(outputDir, fileName), 
-      row.names = FALSE, 
-      col.names = FALSE, 
-      quote = FALSE
-    )
+  judgment <- eventReactive(input$yesButton,  {
+    judgment <- 1
+    return(judgment)
   })
-
-  data_results <- eventReactive(c(input$noButton, input$yesButton),  {
+  judgment <- eventReactive(input$noButton,  {
+    judgment <- 0
+    return(judgment)
+  })
+  #save data
+    data_results <- eventReactive(c(input$noButton, input$yesButton),  {
     #bind data into dataframe
     data_results <- data.frame(as.numeric(unlist(means())), as.numeric(unlist(grouplist())))
     colnames(data_results) <- c("means", "grouplist")
@@ -110,20 +105,42 @@ server <- function(input, output) {
     #Calculate Cohen's d
     d <- z$stat[[1]] * sqrt(sum(grouplist()==1)+sum(grouplist()==2))/sqrt(sum(grouplist()==1)*sum(grouplist()==2))
     obs_power <- pwr.t.test(d=d,n=round((sum(grouplist()==1)+sum(grouplist()==2))/2),sig.level=0.05,type="two.sample")$power
+    judgement <- ifelse(input$noButton == 0,0,1) #set judgment to 0 if no is pressed, to 1 if yes is pressed.
+    correct <- ifelse(judgement == 0 & effect_size() == 0 | judgement == 1 & effect_size() > 0,"You made the correct choice","You did not make the correct choice")
     #Give results
-    out <- paste("The null hypothesis significance test was ",testoutcome,", t(",round(z$parameter[[1]], digits=2),") = ",format(z$stat[[1]], digits = 3, nsmall = 3, scientific = FALSE),", p = ",format(z$p.value[[1]], digits = 3, nsmall = 3, scientific = FALSE),", given an alpha of 0.05. Based on the data you sampled you had ",round(obs_power,2),"% power to detect a difference, based on an observed effect size of d = ",round(d,2),".",sep="")
+    out <- paste(correct," because the true effect size in the population we are simulating data from was ",effect_size(),". The null hypothesis significance test was ",testoutcome,", t(",round(z$parameter[[1]], digits=2),") = ",format(z$stat[[1]], digits = 3, nsmall = 3, scientific = FALSE),", p = ",format(z$p.value[[1]], digits = 3, nsmall = 3, scientific = FALSE),", given an alpha of 0.05. Based on the data you sampled you had ",100*round(obs_power,2),"% power to detect a difference, based on an observed effect size of d = ",round(d,2),".",sep="")
     #results <- list(out = out, d = d, obs_power = obs_power)
     return(out)
   })
   
-  group <- eventReactive(input$sampleButton, {
+    observeEvent(c(input$noButton, input$yesButton),  {
+      outputDir <- "responses"
+      judgement <- ifelse(input$noButton == 0,0,1) #set judgment to 0 if no is pressed, to 1 if yes is pressed.
+      data <- data.frame(judgement, effect_size(), means(), grouplist())
+      # Create a unique file name
+      fileName <- sprintf("%s_%s.csv", as.integer(Sys.time()), digest::digest(data))
+      # Write the file to the local system
+      write.table(
+        x = data,
+        file = file.path(outputDir, fileName), 
+        row.names = FALSE, 
+        col.names = FALSE, 
+        quote = FALSE
+      )
+    })
+    group <- eventReactive(input$sampleButton, {
     values$group <- sample(c(1,2),1,1)
     return(values$group)
   })
   
   dif <- eventReactive(input$sampleButton, {
-    x <- rnorm(n, effect_size(), sd)
-    y <- rnorm(n, 0, sd)
+    if(group() == 1){
+      y <- rnorm(n, 0, sd)
+    }
+    if(group() == 2){
+      y <- rnorm(n, effect_size(), sd)
+    }
+    x <- rnorm(n, 0, sd)
     mean(x) - mean(y)
   })
   
