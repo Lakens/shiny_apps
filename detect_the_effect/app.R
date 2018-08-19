@@ -21,7 +21,6 @@ ui <- fluidPage(
         h4(uiOutput("display_condition")),
         actionButton("sampleButton", "Sample a new datapoint"),
         h4(uiOutput("displayCounter")),
-        h4(uiOutput("display_group")),
         h4(uiOutput("means")),
         h4(uiOutput("grouplist")),
         plotOutput("Plot"),
@@ -38,8 +37,8 @@ server <- function(input, output) {
   min_x <- -10
   max_x <- 10
   
-  condition <- reactive({condition = sample(c(0,1),1,1)})
-  effect_size <- reactive({effect_size = sample(c(0.5,0.8,1),1,1)})
+#  condition <- reactive({condition = sample(c(0,1),1,1)})
+  effect_size <- reactive({effect_size = sample(c(0, 0.5, 0.8),1,1)})
 #  data_results <- reactiveValues(m=data.frame(x=rnorm(n),y=rnorm(n)))
   
   values <- reactiveValues(effect_size = 9, 
@@ -53,9 +52,9 @@ server <- function(input, output) {
   output$display_effectsize <- renderText({
     c("Effect Size:", effect_size())
   })
-  output$display_condition <- renderText({
-    c("Condition (if 0, no difference, if 1, difference):", condition())
-  })
+  # output$display_condition <- renderText({
+  #   c("Condition (if 0, no difference, if 1, difference):", condition())
+  # })
   output$display_group <- renderText({
     c("Group:", group())
   })
@@ -106,7 +105,7 @@ server <- function(input, output) {
   observeEvent(input$yesButton,  {
     outputDir <- "responses"
     judgement <- 1
-    data <- data.frame(judgement, condition(), effect_size(), means(), grouplist())
+    data <- data.frame(judgement, effect_size(), means(), grouplist())
     # Create a unique file name
     fileName <- sprintf("%s_%s.csv", as.integer(Sys.time()), digest::digest(data))
     # Write the file to the local system
@@ -121,7 +120,7 @@ server <- function(input, output) {
   observeEvent(input$noButton,  {
     outputDir <- "responses"
     judgement <- 0
-    data <- data.frame(judgement, condition(), effect_size(), means(), grouplist())
+    data <- data.frame(judgement, effect_size(), means(), grouplist())
     # Create a unique file name
     fileName <- sprintf("%s_%s.csv", as.integer(Sys.time()), digest::digest(data))
     # Write the file to the local system
@@ -174,14 +173,7 @@ server <- function(input, output) {
   })
   
   dif <- eventReactive(input$sampleButton, {
-    
-    if(condition() == 0){
-      x <- rnorm(n, 0, sd)
-    }
-    if(condition() == 1){
-      x <- rnorm(n, effect_size(), sd)
-    }
-    
+    x <- rnorm(n, effect_size(), sd)
     y <- rnorm(n, 0, sd)
     mean(x) - mean(y)
   })
