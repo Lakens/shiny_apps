@@ -8,6 +8,7 @@ sd <- 1
 n <- 1
 min_x <- -10
 max_x <- 10
+effect_size <- sample(c(0,0.5,0.8),1,0)
 
 
 # Define UI for application that draws a histogram
@@ -17,6 +18,8 @@ ui <- fluidPage(
   # extendShinyjs(text = jsResetCode),
   # Application title
   titlePanel("Guess The Effect"),
+  
+
   
   # Show a plot of the generated distribution
   mainPanel(
@@ -39,8 +42,6 @@ ui <- fluidPage(
 server <- function(input, output) {
   
 
-  effect_size <- sample(c(0,0.5,0.8),1,0)
-  
   #Is the part below needed? Test is it can be deleted
   values <- reactiveValues(means = list(),
                            grouplist = list())
