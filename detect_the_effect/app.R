@@ -18,40 +18,38 @@ ui <- fluidPage(
   
   useShinyjs(), #add useShinyjs to be able to disable buttons upon making a choice.
   extendShinyjs(text = jsResetCode),
-   # Application title
-   titlePanel("Guess The Effect"),
-   
-      # Show a plot of the generated distribution
-      mainPanel(
-        h4("Click the button below to start a new trial. Your task is to guess whether there is a real effect, or not. You can do so be sampling data point. You will randomly see a datapint from a group represented by circles, or a group represented by squares. You can sample a data point, and it will randomly draw datapoints from either group, with a randomly determined effect size (which could be 0). If you feel sufficiently certain that there is a real difference or not, click on of the buttons at the bottom to store your choice. You can see if you were right, or not. If you want to try again, you can click the button to start a new trial."),
-        actionButton("trialButton", "Start a New Data Collection Trial"),
-        h4(effect_size),
-        actionButton("sampleButton", "Sample a new datapoint"),
-        h4(uiOutput("displayCounter")),
-        h4(uiOutput("display_group")),
-        h4(uiOutput("means")),
-        h4(uiOutput("grouplist")),
-        plotOutput("Plot"),
-        actionButton("yesButton", "I think the circle and square groups are equal"),
-        actionButton("noButton", "I think the circle and square groups are different"),
-        h4(uiOutput("results"))
-      )
+  # Application title
+  titlePanel("Guess The Effect"),
+  
+  # Show a plot of the generated distribution
+  mainPanel(
+    h4("Click the button below to start a new trial. Your task is to guess whether there is a real effect, or not. You can do so be sampling data point. You will randomly see a datapint from a group represented by circles, or a group represented by squares. You can sample a data point, and it will randomly draw datapoints from either group, with a randomly determined effect size (which could be 0). If you feel sufficiently certain that there is a real difference or not, click on of the buttons at the bottom to store your choice. You can see if you were right, or not. If you want to try again, you can click the button to start a new trial."),
+    actionButton("trialButton", "Start a New Data Collection Trial"),
+    h4(effect_size),
+    actionButton("sampleButton", "Sample a new datapoint"),
+    h4(uiOutput("displayCounter")),
+    h4(uiOutput("display_group")),
+    h4(uiOutput("means")),
+    h4(uiOutput("grouplist")),
+    plotOutput("Plot"),
+    actionButton("yesButton", "I think the circle and square groups are equal"),
+    actionButton("noButton", "I think the circle and square groups are different"),
+    h4(uiOutput("results"))
+  )
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-
-
+  
+  
   #Is the part below needed? Test is it can be deleted
-  values <- reactiveValues(effect_size = 9, 
-                           group = 1, 
-                           means = list(),
+  values <- reactiveValues(means = list(),
                            grouplist = list())
-
+  
   output$displayCounter <- renderText({
     c("Number of Datapoints Sampled:", updateCounter())
   })
-
+  
   output$display_group <- renderText({
     c("Group:", group())
   })
@@ -95,7 +93,7 @@ server <- function(input, output) {
     return(judgment)
   })
   #save data
-    data_results <- eventReactive(c(input$noButton, input$yesButton),  {
+  data_results <- eventReactive(c(input$noButton, input$yesButton),  {
     #bind data into dataframe
     data_results <- data.frame(as.numeric(unlist(means())), as.numeric(unlist(grouplist())))
     colnames(data_results) <- c("means", "grouplist")
@@ -114,22 +112,22 @@ server <- function(input, output) {
     return(out)
   })
   
-    observeEvent(c(input$noButton, input$yesButton),  {
-      outputDir <- "responses"
-      judgement <- ifelse(input$noButton == 0,0,1) #set judgment to 0 if no is pressed, to 1 if yes is pressed.
-      data <- data.frame(judgement, effect_size, means(), grouplist())
-      # Create a unique file name
-      fileName <- sprintf("%s_%s.csv", as.integer(Sys.time()), digest::digest(data))
-      # Write the file to the local system
-      write.table(
-        x = data,
-        file = file.path(outputDir, fileName), 
-        row.names = FALSE, 
-        col.names = FALSE, 
-        quote = FALSE
-      )
-    })
-    group <- eventReactive(input$sampleButton, {
+  observeEvent(c(input$noButton, input$yesButton),  {
+    outputDir <- "responses"
+    judgement <- ifelse(input$noButton == 0,0,1) #set judgment to 0 if no is pressed, to 1 if yes is pressed.
+    data <- data.frame(judgement, effect_size, means(), grouplist())
+    # Create a unique file name
+    fileName <- sprintf("%s_%s.csv", as.integer(Sys.time()), digest::digest(data))
+    # Write the file to the local system
+    write.table(
+      x = data,
+      file = file.path(outputDir, fileName), 
+      row.names = FALSE, 
+      col.names = FALSE, 
+      quote = FALSE
+    )
+  })
+  group <- eventReactive(input$sampleButton, {
     values$group <- sample(c(1,2),1,1)
     return(values$group)
   })
@@ -155,8 +153,8 @@ server <- function(input, output) {
     return(values$grouplist)
   })
   
-    
-    
+  
+  
   output$Plot <- renderPlot({
     plot(NA, 
          ylim = c(0, 1), 
@@ -182,7 +180,7 @@ server <- function(input, output) {
              cex = 2)
     }
   })
-
+  
   #reset the app completely
   observeEvent(input$trialButton,  {
     js$reset()
