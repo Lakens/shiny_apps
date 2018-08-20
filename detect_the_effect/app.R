@@ -1,31 +1,28 @@
 library(shiny)
 library(shinyjs)
 library(pwr)
-library(V8)
 
-jsResetCode <- "shinyjs.reset = function() {history.go(0)}" # Define the js method that resets the page
+# jsResetCode <- "shinyjs.reset = function() {history.go(0)}" # Define the js method that resets the page
+# 
+sd <- 1
+n <- 1
+min_x <- -10
+max_x <- 10
 
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
   
-  sd <- 1,
-  n <- 1,
-  min_x <- -10,
-  max_x <- 10,
-  
-  effect_size <- sample(c(0,0.5,0.8),1,0),
-  
   useShinyjs(), #add useShinyjs to be able to disable buttons upon making a choice.
-  extendShinyjs(text = jsResetCode),
+  # extendShinyjs(text = jsResetCode),
   # Application title
   titlePanel("Guess The Effect"),
   
   # Show a plot of the generated distribution
   mainPanel(
-    h4("Click the button below to start a new trial. Your task is to guess whether there is a real effect, or not. You can do so be sampling data point. You will randomly see a datapint from a group represented by circles, or a group represented by squares. You can sample a data point, and it will randomly draw datapoints from either group, with a randomly determined effect size (which could be 0). If you feel sufficiently certain that there is a real difference or not, click on of the buttons at the bottom to store your choice. You can see if you were right, or not. If you want to try again, you can click the button to start a new trial."),
-    actionButton("trialButton", "Start a New Data Collection Trial"),
-    h4(effect_size),
+    h4("Your task is to guess whether there is a real effect, or not. You can do so by sampling data points. You will randomly see a datapint from a group represented by circles, or a group represented by squares. You can sample a data point, and it will randomly draw datapoints from either group, with a randomly determined effect size (which could be 0). If you feel sufficiently certain that there is a real difference or not, click on of the buttons at the bottom to store your choice. You can see if you were right, or not. If you want to try again, reload the page."),
+    #actionButton("trialButton", "Start a New Data Collection Trial"),
+    h4(uiOutput("effectsize")),
     actionButton("sampleButton", "Sample a new datapoint"),
     h4(uiOutput("displayCounter")),
     h4(uiOutput("display_group")),
@@ -41,6 +38,8 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   
+
+  effect_size <- sample(c(0,0.5,0.8),1,0)
   
   #Is the part below needed? Test is it can be deleted
   values <- reactiveValues(means = list(),
@@ -49,6 +48,10 @@ server <- function(input, output) {
   output$displayCounter <- renderText({
     c("Number of Datapoints Sampled:", updateCounter())
   })
+  output$effectsize <- renderText({
+    c("Effect Size:", effect_size)
+  })
+  
   
   output$display_group <- renderText({
     c("Group:", group())
@@ -70,7 +73,7 @@ server <- function(input, output) {
     else {k <- input$sampleButton}
     return(k)
   })
-  
+
   #Disable buttons (except new trial button) after choice is made
   observeEvent(input$noButton,  {
     shinyjs::disable("noButton")
@@ -82,7 +85,7 @@ server <- function(input, output) {
     shinyjs::disable("yesButton")
     shinyjs::disable(id = "sampleButton")
   })
-  
+
   #Clicking the answer buttons will end the trial and store the data
   judgment <- eventReactive(input$yesButton,  {
     judgment <- 1
@@ -181,10 +184,11 @@ server <- function(input, output) {
     }
   })
   
-  #reset the app completely
-  observeEvent(input$trialButton,  {
-    js$reset()
-  })
+  
+  # #reset the app completely
+  # observeEvent(input$trialButton,  {
+  #   js$reset()
+  # })
 }
 
 # Run the application 
