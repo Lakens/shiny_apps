@@ -1,6 +1,7 @@
 library(shiny)
 library(shinyjs)
 library(pwr)
+library(shinythemes)
 
 # jsResetCode <- "shinyjs.reset = function() {history.go(0)}" # Define the js method that resets the page
 # constants ---
@@ -13,7 +14,7 @@ direction <- sample(c(-1, 1), 1, 0)
 offset <- sample(c(-1, -0.5, 0, 0.5, 1), 1, 0)
 
 # Define UI ----
-ui <- fluidPage(
+ui <- fluidPage(theme= shinytheme("lumen"),
 
   useShinyjs(), #add useShinyjs to be able to disable buttons upon making a choice.
   # extendShinyjs(text = jsResetCode),
@@ -22,11 +23,15 @@ ui <- fluidPage(
 
   # Show a plot of the generated distribution
   mainPanel(
-    h4("Your task is to guess whether there is a real effect, or not. You can do so by sampling data points. You will randomly see a datapint from a group represented by circles, or a group represented by squares. You can sample a data point, and it will randomly draw datapoints from either group, with a randomly determined effect size (which could be 0). If you feel sufficiently certain that there is a real difference or not, click on of the buttons at the bottom to store your choice. You can see if you were right, or not. If you want to try again, reload the page."),
+    h4("Your task is to guess whether there is a real difference between two groups, one represented by circles one represented by squares. To inform your guess, you will sample individual data points from each group."),
+    h4("The real difference between the two groups will be randomly decided by the app. Keep in mind that the effect size may sometimes be zero."),
+    h4("Once you are sufficiently certain about whether there is a real difference or not, click one of the buttons at the bottom to submit your choice. Afterwards, the app will reveal whether you were correct. If you want to try again, reload the page."),
+    tags$br(),
     #actionButton("trialButton", "Start a New Data Collection Trial"),
 #    h4(uiOutput("effectsize")),
     actionButton("sampleButton", "Sample a new datapoint"),
     h4(uiOutput("displayCounter")),
+    tags$br(),
 #    h4(uiOutput("display_group")),
     plotOutput("Plot"),
     h4(uiOutput("results")),
@@ -88,7 +93,7 @@ server <- function(input, output, session) {
   })
   #save data
   data_results <- eventReactive(c(input$noButton, input$yesButton),  {
-    if (length(values$means) == 0) { return("Results will appear here when you have clicked on e of the two buttons below. You can not sample additional data after clickcing the buttons below. If you click the button you will see whether the data was significantly different from 0 (p < .05), the effect size the simulation is based on, and the observed effect size.") }
+    if (length(values$means) == 0) { return("Results will appear here once you have clicked one of the two buttons below. The results will tell you the true effect size and group means that the simulation is based on, the observed difference in your sample, and whether the observed difference differs from zero (p < .05).") }
     means <- values$means
     grouplist <- values$grouplist
     
