@@ -171,8 +171,13 @@ server <- function(input, output, session) {
   
   # Sample button actions ----
   observeEvent(input$sampleButton, {
-    ## set group
-    group <- sample(c(1,2),1,1)
+    ## set group based on value for sample button (great suggestion by Nick Coles)
+    if((input$sampleButton %% 2) == 0) {
+      group <- 1
+    } else {
+      group <- 2
+    }
+    
     values$grouplist[input$sampleButton] <- group
     
     ## generate a data point from the group
