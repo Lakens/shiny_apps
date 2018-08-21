@@ -11,7 +11,7 @@ min_x <- -7
 max_x <- 7
 effect_size <- sample(c(0, 0.5, 0.8), 1, 0)
 direction <- sample(c(-1, 1), 1, 0)
-offset <- sample(c(-1, -0.5, 0, 0.5, 1), 1, 0)
+shift_es <- sample(c(0, 0.5, 1), 1, 0)
 
 # Define UI ----
 ui <- fluidPage(theme= shinytheme("lumen"),
@@ -23,8 +23,8 @@ ui <- fluidPage(theme= shinytheme("lumen"),
 
   # Show a plot of the generated distribution
   mainPanel(
-    h4("Your task is to guess whether there is a real difference between two groups, one represented by circles one represented by squares. To inform your guess, you will sample individual data points from each group."),
-    h4("The real difference between the two groups will be randomly decided by the app. Keep in mind that the effect size may sometimes be zero."),
+    h4("Your task is to guess whether there is a real difference between two groups, one represented by circles, and one represented by squares. To inform your guess, you will sample individual data points from each group."),
+    h4("The real difference between the two groups will be randomly decided by the app (and shown after you made your decision). The difference is sometimes zero. The true means for each group lie between -3 and +3 and are randomly determined."),
     h4("Once you are sufficiently certain about whether there is a real difference or not, click one of the buttons at the bottom to submit your choice. Afterwards, the app will reveal whether you were correct. If you want to try again, reload the page."),
     tags$br(),
     #actionButton("trialButton", "Start a New Data Collection Trial"),
@@ -111,7 +111,7 @@ server <- function(input, output, session) {
     judgement <- ifelse(input$noButton == 0,0,1) #set judgment to 0 if no is pressed, to 1 if yes is pressed.
     correct <- ifelse(judgement == 0 & effect_size == 0 | judgement == 1 & effect_size > 0,"You made the correct choice","You did not make the correct choice")
     #Give results
-    out <- paste(correct," because the true effect size in the population we are simulating data from was ",effect_size,". The mean in the circle group was ",(0 + offset) * direction," and the mean in the square group was ",(effect_size + offset) * direction,". The null hypothesis significance test was ",testoutcome,", t(",round(z$parameter[[1]], digits=2),") = ",format(z$stat[[1]], digits = 3, nsmall = 3, scientific = FALSE),", p = ",format(z$p.value[[1]], digits = 3, nsmall = 3, scientific = FALSE),", given an alpha of 0.05. Based on the data you sampled you had ",100*round(obs_power,2),"% power to detect a difference, based on an observed effect size of d = ",round(d,2),". Reload this website if you want to do this task again.",sep="")
+    out <- paste(correct," because the true effect size in the population we are simulating data from was ",effect_size*direction,". The population mean in the circle group was ",(0 + shift_es) * direction," (the observed mean was ",round(z$estimate[[1]],2)," and the population mean in the square group was ",(effect_size + shift_es) * direction," (the observed mean was ",round(z$estimate[[2]],2),". The null hypothesis significance test was ",testoutcome,", t(",round(z$parameter[[1]], digits=2),") = ",format(z$stat[[1]], digits = 3, nsmall = 3, scientific = FALSE),", p = ",format(z$p.value[[1]], digits = 3, nsmall = 3, scientific = FALSE),", given an alpha of 0.05. Based on the data you sampled you had ",100*round(obs_power,2),"% power to detect a difference, based on an observed effect size of d = ",round(d,2),". Reload this website if you want to do this task again.",sep="")
     #results <- list(out = out, d = d, obs_power = obs_power)
     return(out)
   })
@@ -142,25 +142,25 @@ server <- function(input, output, session) {
          yaxt = "n",
          xaxt = "n",
          ylab = "",
-         xlab = "Observed Difference")
+         xlab = "Observed Score (on a scale from -7 to 7)")
     axis(1, at = seq(min_x, max_x), labels = seq(min_x, max_x, 1), las = 1)
     abline(v = seq(min_x, max_x, 1),
            lty = 2,
            col = "grey")
-    abline(v = c((0 + offset) * direction, (effect_size + offset) * direction),
+    abline(v = c((0 + shift_es) * direction, (effect_size + shift_es) * direction),
            lty = 2,
            lwd = 2,
            col = "red")
-      points(x = (0 + offset) * direction,
+      points(x = (0 + shift_es) * direction,
              y = 0.5,
              pch = 16,
              cex = 3,
-             col = "red")
-      points(x = (effect_size + offset) * direction,
+             col = rgb(1,0,0, alpha = 0.5))
+      points(x = (effect_size + shift_es) * direction,
              y = 0.5,
              pch = 15,
              cex = 3,
-             col = "red")
+             col = rgb(1,0,0, alpha = 0.5))
 
     })
     
@@ -182,12 +182,15 @@ server <- function(input, output, session) {
     
     ## generate a data point from the group
     if(group == 1){
-      y <- rnorm(n, (0 + offset) * direction, sd)
+      x <- rnorm(n, (0 + shift_es) * direction, sd)
+      if(x > 7){x <- 7} #prevent values more extreme than 7
+      if(x < -7){x <- -7}
     } else if(group == 2){
-      y <- rnorm(n, (effect_size + offset) * direction, sd)
+      x <- rnorm(n, (effect_size + shift_es) * direction, sd)
+      if(x > 7){x <- 7}
+      if(x < -7){x <- -7}
     }
-    x <- rnorm(n, 0, sd)
-    values$means[input$sampleButton] <- mean(x) - mean(y)
+    values$means[input$sampleButton] <- mean(x)
   })
 
   output$Plot <- renderPlot({
@@ -202,7 +205,7 @@ server <- function(input, output, session) {
          yaxt = "n",
          xaxt = "n",
          ylab = "",
-         xlab = "Observed Difference")
+         xlab = "Observed Score (on a scale from -7 to 7)")
     axis(1, at = seq(min_x, max_x), labels = seq(min_x, max_x, 1), las = 1)
     abline(v = seq(min_x, max_x, 1),
            lty = 2,
