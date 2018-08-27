@@ -1,6 +1,6 @@
 ui <- fluidPage(titlePanel("Distribution of Cohen's d, p-values, and power curves for an independent two-tailed t-test"),
                 sidebarLayout(
-                  sidebarPanel(numericInput("N", "Participants per group:", 50, min = 1, max = 1000),
+                  sidebarPanel(numericInput("N", "Participants per group:", 50, min = 2, max = 1000),
                                sliderInput("d", label = HTML("Cohen's d (&delta;)"), min = 0, max = 2, value = 0.5, step= 0.01),
                                sliderInput("p_upper", "alpha, or p-value (upper limit):", min = 0, max = 1, value = 0.05, step= 0.005),
                                uiOutput("p_low"),

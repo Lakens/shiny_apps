@@ -127,8 +127,9 @@ server <- function(input, output) {
     d<-input$d
     p_upper<-input$p_upper
     ncp<-(input$d*sqrt(N/2)) #Calculate non-centrality parameter d
-    low_x<--2
-    high_x<-3
+    crit_d<-abs(qt(p_upper/2, (N*2)-2))/sqrt(N/2)
+    low_x<-min(-1-crit_d)
+    high_x<-max(d+1+crit_d)
     #calc d-distribution
     x=seq(low_x,high_x,length=10000) #create x values
     d_dist<-dt(x*sqrt(N/2),df=(N*2)-2, ncp = ncp)*sqrt(N/2) #calculate distribution of d based on t-distribution
@@ -139,24 +140,24 @@ server <- function(input, output) {
     d = round(d,2)
     plot(-10,xlim=c(low_x,high_x), ylim=c(0,y_max), xlab=substitute(paste("Cohen's ", delta == d)), ylab="Density",main=substitute(paste("Distribution of Cohen's ", delta == d,", N = ",N)))
     #abline(v = seq(low_x,high_x,0.1), h = seq(0,0.5,0.1), col = "lightgray", lty = 1)
-    axis(side = 1, at = seq(low_x,high_x,0.1), labels = FALSE)
+#    axis(side = 1, at = seq(low_x,high_x,0.1), labels = FALSE)
     lines(x,d_dist,col='black',type='l', lwd=2)
-    #add d = 0 line
+    # add d = 0 line
     d_dist<-dt(x*sqrt(N/2),df=(N*2)-2, ncp = 0)*sqrt(N/2)
     lines(x,d_dist,col='grey',type='l', lwd=1)
     #Add Type 1 error rate right
     crit_d<-abs(qt(p_upper/2, (N*2)-2))/sqrt(N/2)
-    y=seq(crit_d,10,length=10000) 
+    y=seq(crit_d,10,length=10000)
     z<-(dt(y*sqrt(N/2),df=(N*2)-2)*sqrt(N/2)) #determine upperbounds polygon
     polygon(c(crit_d,y,10),c(0,z,0),col=rgb(1, 0, 0,0.5))
     #Add Type 1 error rate left
     crit_d<--abs(qt(p_upper/2, (N*2)-2))/sqrt(N/2)
-    y=seq(-10, crit_d, length=10000) 
+    y=seq(-10, crit_d, length=10000)
     z<-(dt(y*sqrt(N/2),df=(N*2)-2)*sqrt(N/2)) #determine upperbounds polygon
     polygon(c(y,crit_d,crit_d),c(z,0,0),col=rgb(1, 0, 0,0.5))
     #Add Type 2 error rate
     crit_d<-abs(qt(p_upper/2, (N*2)-2))/sqrt(N/2)
-    y=seq(-10,crit_d,length=10000) 
+    y=seq(-10,crit_d,length=10000)
     z<-(dt(y*sqrt(N/2),df=(N*2)-2, ncp=ncp)*sqrt(N/2)) #determine upperbounds polygon
     polygon(c(y,crit_d,crit_d),c(0,z,0),col=rgb(0, 0, 1,0.5))
     segments(crit_d, 0, crit_d, y_max-0.8, col= 'black', lwd=2)
