@@ -13,6 +13,7 @@ effect_size <- sample(c(0, 0, 0, 0.2, 0.5, 0.8), 1, 0)
 direction <- sample(c(-1, 1), 1, 0)
 shift_es <- sample(c(0, 0.5, 1), 1, 0)
 counter <- 0
+judgement <- 0
 
 # Define UI ----
 ui <- fluidPage(theme= shinytheme("lumen"),
@@ -71,27 +72,29 @@ server <- function(input, output, session) {
     shinyjs::disable("yesButton")
     shinyjs::disable(id = "sampleButton")
     shinyjs::enable("resetButton")
+    judgement <<- 1
   })
   observeEvent(input$yesButton,  {
     shinyjs::disable("noButton")
     shinyjs::disable("yesButton")
     shinyjs::disable(id = "sampleButton")
     shinyjs::enable("resetButton")
+    judgement <<- 0
   })
   
   #Clicking the answer buttons will end the trial and store the data ----
   
   #save data
-  data_results <- eventReactive(c(input$noButton, input$yesButton),  {
-    if (length(values$means) == 0) { return("Results will appear here once you have clicked one of the two buttons below. The results will tell you the true effect size and group means that the simulation is based on, the observed difference in your sample, and whether the observed difference differs from zero (p < .05).") }
+  data_results <- eventReactive(c(input$noButton, input$yesButton, input$resetButton),  {
+    if (counter == 0) { return("Results will appear here once you have clicked one of the two buttons below. The results will tell you the true effect size and group means that the simulation is based on, the observed difference in your sample, and whether the observed difference differs from zero (p < .05).") }
     means <- values$means
     grouplist <- values$grouplist
     
     #bind data into dataframe
-    data_results <- data.frame(as.numeric(unlist(means)), as.numeric(unlist(grouplist)))
-    colnames(data_results) <- c("means", "grouplist")
+    data <- data.frame(as.numeric(unlist(means)), as.numeric(unlist(grouplist)))
+    colnames(data) <- c("means", "grouplist")
     #Perform t-test and save as z
-    z <- t.test(means ~ grouplist, data_results, var.equal = TRUE)
+    z <- t.test(means ~ grouplist, data, var.equal = TRUE)
     #Is test significant or not?
     testoutcome<-ifelse(z$p.value<.05,"significant","non-significant")
     #Calculate Cohen's d
@@ -100,9 +103,7 @@ server <- function(input, output, session) {
                             n=round((sum(grouplist==1)+sum(grouplist==2))/2),
                             sig.level=0.05,
                             type="two.sample")$power
-    #set judgment to 0 if no is pressed, to 1 if yes is pressed.
-    judgement <- ifelse(input$noButton == 0,0,1) 
-    correct <- ifelse(judgement == (effect_size>0),
+    correct <- ifelse(judgement == (effect_size > 0),
                       "You made the correct choice.",
                       "You did not make the correct choice.")
     #Give results
@@ -136,10 +137,10 @@ server <- function(input, output, session) {
     grouplist <- values$grouplist
     
     #do t-test
-    data_results <- data.frame(as.numeric(unlist(means)), as.numeric(unlist(grouplist)))
-    colnames(data_results) <- c("means", "grouplist")
+    data <- data.frame(as.numeric(unlist(means)), as.numeric(unlist(grouplist)))
+    colnames(data) <- c("means", "grouplist")
     #Perform t-test and save as z
-    z <- t.test(means ~ grouplist, data_results, var.equal = TRUE)
+    z <- t.test(means ~ grouplist, data, var.equal = TRUE)
     d <- z$stat[[1]] * sqrt(sum(grouplist==1)+sum(grouplist==2))/sqrt(sum(grouplist==1)*sum(grouplist==2))
     obs_power <- pwr.t.test(d=d,
                             n=round((sum(grouplist==1)+sum(grouplist==2))/2),
@@ -147,8 +148,7 @@ server <- function(input, output, session) {
                             type="two.sample")$power
     
     outputDir <- "responses"
-    #set judgment to 0 if no is pressed, to 1 if yes is pressed.
-    judgement <- ifelse(input$noButton == 0,0,1) 
+
     data <- data.frame(input$ID, length(values$grouplist), judgement, effect_size, effect_size*direction, (0 + shift_es) * direction, (effect_size + shift_es) * direction, z$estimate[[1]], z$parameter[[1]], z$stat[[1]], z$p.value[[1]], obs_power, d, means, grouplist)
     # Create a unique file name
     fileName <- sprintf("%s_%s.csv", as.integer(Sys.time()), digest::digest(data))
@@ -238,8 +238,8 @@ server <- function(input, output, session) {
     
     # only plot data if there's something to plot
     if (length(values$means) > 0) {
-      dif <- values$means[input$sampleButton]
-      group <- values$grouplist[input$sampleButton]
+      dif <- values$means[counter]
+      group <- values$grouplist[counter]
       
       if(group == 1){
         points(x = dif,
@@ -255,6 +255,7 @@ server <- function(input, output, session) {
       }
     }
   })
+  
   observeEvent((input$resetButton),  {
     effect_size <<- sample(c(0, 0, 0, 0.2, 0.5, 0.8), 1, 0)
     direction <<- sample(c(-1, 1), 1, 0)
@@ -264,12 +265,45 @@ server <- function(input, output, session) {
     shinyjs::disable("resetButton")
     values$means <- NULL
     values$grouplist <- NULL
+    judgement <<- NA
+    
+    output$results <- renderText({data_results() })
+    
+    output$Plot <- renderPlot({
+      plot(NA,
+           ylim = c(0, 1),
+           xlim = c(min_x, max_x),
+           yaxt = "n",
+           xaxt = "n",
+           ylab = "",
+           xlab = "Observed Score (on a scale from -7 to 7)")
+      axis(1, at = seq(min_x, max_x), labels = seq(min_x, max_x, 1), las = 1)
+      abline(v = seq(min_x, max_x, 1),
+             lty = 2,
+             col = "grey")
+      
+      # only plot data if there's something to plot
+      if (length(values$means) > 0) {
+        dif <- values$means[counter]
+        group <- values$grouplist[counter]
+        
+        if(group == 1){
+          points(x = dif,
+                 y = 0.5,
+                 pch = 16,
+                 cex = 2)
+        }
+        if(group == 2){
+          points(x = dif,
+                 y = 0.5,
+                 pch = 15,
+                 cex = 2)
+        }
+      }
+    })
+    # output$results <- renderText({paste("ok") })
   })  
 
-  # values <- eventReactive((resetButton),  {
-  #   reactiveValues(means = list(),
-  #                  grouplist = list())
-  # })  
 }
 
 # Run the application
