@@ -27,15 +27,15 @@ ui <- fluidPage(theme= shinytheme("lumen"),
                 
                 # Show a plot of the generated distribution
                 sidebarPanel(
-                  textInput("ID", "Copy-paste your student ID in the field below", 1234567),
+                  textInput("ID", "Fill in your student ID in the field below", 1234567),
                   h5("Your task is to guess whether there is a real difference between two groups, one represented by circles, and one represented by squares. To inform your guess, you will sample individual data points from each group."),
                   p("The real difference between the two groups will be randomly decided by the app (and shown after you made your decision). The difference is either an effect size of 0, 0.2, 0.5, or 0.8. If there is an effect, it can be positive or negative (i.e., squared can have a higher or lower means than circles)."),
                   h5("You should sample data until you are 80% certain about your decision about whether there is a real difference or not. If you do this task 30 times, you should guess correctly 24 of the 30 times."),
-                  p("Click one of the buttons at the bottom to submit your choice. Afterwards, the app will reveal whether you were correct or not. If you want to try again, reload the page (e.g., by pressing F5 on your keyboard or refreshing your browser)."),
+                  p("Click the 'Start A New Trial' button to start, and click the 'Sample A New Datapoint' button until you are 80% certain of your choice. Then click one of the two buttons below the figure to submit your choice. Afterwards, the app will reveal whether you were correct or not. You can click the 'Start A New Trial' button to start again. The app will keep track of your performence."),
                   tags$br(),
-                  #actionButton("trialButton", "Start a New Data Collection Trial"),
-                  #    h4(uiOutput("effectsize")),
                   actionButton("resetButton", "Start a New Trial", style = "padding:20px; font-size:140%"),
+                  tags$br(),
+                  tags$br(),
                   actionButton("sampleButton", "Sample a new datapoint", style = "padding:20px; font-size:140%"),
                   h4(uiOutput("displayCounter")),
                   h4(uiOutput("displayTrials"))
@@ -139,7 +139,7 @@ server <- function(input, output, session) {
                   ", t(",round(z$parameter[[1]], digits=2),") = ",
                   format(z$stat[[1]], digits = 3, nsmall = 3, scientific = FALSE),
                   ", p = ",format(z$p.value[[1]], digits = 3, nsmall = 3, scientific = FALSE),
-                  ", given an alpha of 0.05. Reload this website if you want to do this task again (e.g., by pressing F5 or refreshing the browser).")
+                  ", given an alpha of 0.05. You can click the 'Start A New Trial' button to start again. The app will keep track of your performence.")
     
     #results <- list(out = out, d = d, obs_power = obs_power)
     return(out)
