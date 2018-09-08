@@ -13,6 +13,8 @@ effect_size <- sample(c(0, 0, 0, 0.2, 0.5, 0.8), 1, 0)
 direction <- sample(c(-1, 1), 1, 0)
 shift_es <- sample(c(0, 0.5, 1), 1, 0)
 counter <- 0
+trials <- 0
+correct_trials <- 0
 judgement <- 0
 
 # Define UI ----
@@ -26,7 +28,7 @@ ui <- fluidPage(theme= shinytheme("lumen"),
                 # Show a plot of the generated distribution
                 sidebarPanel(
                   textInput("ID", "Copy-paste your student ID in the field below", 1234567),
-                  h5(effect_size,"Your task is to guess whether there is a real difference between two groups, one represented by circles, and one represented by squares. To inform your guess, you will sample individual data points from each group."),
+                  h5("Your task is to guess whether there is a real difference between two groups, one represented by circles, and one represented by squares. To inform your guess, you will sample individual data points from each group."),
                   p("The real difference between the two groups will be randomly decided by the app (and shown after you made your decision). The difference is either an effect size of 0, 0.2, 0.5, or 0.8. If there is an effect, it can be positive or negative (i.e., squared can have a higher or lower means than circles)."),
                   h5("You should sample data until you are 80% certain about your decision about whether there is a real difference or not. If you do this task 30 times, you should guess correctly 24 of the 30 times."),
                   p("Click one of the buttons at the bottom to submit your choice. Afterwards, the app will reveal whether you were correct or not. If you want to try again, reload the page (e.g., by pressing F5 on your keyboard or refreshing your browser)."),
@@ -35,7 +37,8 @@ ui <- fluidPage(theme= shinytheme("lumen"),
                   #    h4(uiOutput("effectsize")),
                   actionButton("resetButton", "Start a New Trial", style = "padding:20px; font-size:140%"),
                   actionButton("sampleButton", "Sample a new datapoint", style = "padding:20px; font-size:140%"),
-                  h4(uiOutput("displayCounter"))
+                  h4(uiOutput("displayCounter")),
+                  h4(uiOutput("displayTrials"))
                 ),
                 mainPanel(
                   plotOutput("Plot"),
@@ -51,9 +54,17 @@ server <- function(input, output, session) {
   values <- reactiveValues(means = list(),
                            grouplist = list())
   
+  reactive_counter <- reactiveValues()
+
   output$displayCounter <- renderText({
-    c("Number of Datapoints Sampled:", input$sampleButton, "length ",length(values$grouplist),"effects",effect_size, as.numeric(unlist(values$means)), as.numeric(unlist(values$grouplist)), "count", counter)
+    c("Number of Datapoints Sampled:", reactive_counter$count)
   })
+
+  output$displayTrials <- renderText({
+    c("Number of Trials:", reactive_counter$trials, "Correct Trials:", reactive_counter$correct_trials)
+  })
+  
+  
   output$effectsize <- renderText({
     c("Effect Size:", effect_size)
   })
@@ -106,6 +117,9 @@ server <- function(input, output, session) {
     correct <- ifelse(judgement == (effect_size > 0),
                       "You made the correct choice.",
                       "You did not make the correct choice.")
+    correct_trials <<- correct_trials + ifelse(judgement == (effect_size > 0), 1, 0)
+    reactive_counter$correct_trials <- correct_trials
+    
     #Give results
     out <- paste0(correct,
                   " The true effect size in simulation was ",
@@ -194,6 +208,7 @@ server <- function(input, output, session) {
   # Sample button actions ----
   observeEvent(input$sampleButton, {
     counter <<- counter + 1
+    reactive_counter$count <- counter
     
     # enable response buttons after 3 observations
     if (length(values$means) > 1) {
@@ -261,11 +276,14 @@ server <- function(input, output, session) {
     direction <<- sample(c(-1, 1), 1, 0)
     shift_es <<- sample(c(0, 0.5, 1), 1, 0)
     counter <<- 0
+    reactive_counter$count <- counter
     shinyjs::enable("sampleButton")
     shinyjs::disable("resetButton")
     values$means <- NULL
     values$grouplist <- NULL
     judgement <<- NA
+    trials <<- trials + 1
+    reactive_counter$trials <- trials
     
     output$results <- renderText({data_results() })
     
