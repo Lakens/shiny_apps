@@ -92,6 +92,56 @@ server <- function(input, output, session) {
     shinyjs::enable("resetButton")
     judgement <<- 0
   })
+
+  observeEvent((input$resetButton),  {
+    effect_size <<- sample(c(0, 0, 0, 0.2, 0.5, 0.8), 1, 0)
+    direction <<- sample(c(-1, 1), 1, 0)
+    shift_es <<- sample(c(0, 0.5, 1), 1, 0)
+    counter <<- 0
+    reactive_counter$count <- counter
+    shinyjs::enable("sampleButton")
+    shinyjs::disable("resetButton")
+    values$means <- NULL
+    values$grouplist <- NULL
+    trials <<- trials + 1
+    reactive_counter$trials <- trials
+    
+    output$results <- renderText({data_results() })
+    
+    output$Plot <- renderPlot({
+      plot(NA,
+           ylim = c(0, 1),
+           xlim = c(min_x, max_x),
+           yaxt = "n",
+           xaxt = "n",
+           ylab = "",
+           xlab = "Observed Score (on a scale from -7 to 7)")
+      axis(1, at = seq(min_x, max_x), labels = seq(min_x, max_x, 1), las = 1)
+      abline(v = seq(min_x, max_x, 1),
+             lty = 2,
+             col = "grey")
+      
+      # only plot data if there's something to plot
+      if (length(values$means) > 0) {
+        dif <- values$means[counter]
+        group <- values$grouplist[counter]
+        
+        if(group == 1){
+          points(x = dif,
+                 y = 0.5,
+                 pch = 16,
+                 cex = 2)
+        }
+        if(group == 2){
+          points(x = dif,
+                 y = 0.5,
+                 pch = 15,
+                 cex = 2)
+        }
+      }
+    })
+    # output$results <- renderText({paste("ok") })
+  })  
   
   #Clicking the answer buttons will end the trial and store the data ----
   
@@ -272,55 +322,6 @@ server <- function(input, output, session) {
     }
   })
   
-  observeEvent((input$resetButton),  {
-    effect_size <<- sample(c(0, 0, 0, 0.2, 0.5, 0.8), 1, 0)
-    direction <<- sample(c(-1, 1), 1, 0)
-    shift_es <<- sample(c(0, 0.5, 1), 1, 0)
-    counter <<- 0
-    reactive_counter$count <- counter
-    shinyjs::enable("sampleButton")
-    shinyjs::disable("resetButton")
-    values$means <- NULL
-    values$grouplist <- NULL
-    trials <<- trials + 1
-    reactive_counter$trials <- trials
-    
-    output$results <- renderText({data_results() })
-    
-    output$Plot <- renderPlot({
-      plot(NA,
-           ylim = c(0, 1),
-           xlim = c(min_x, max_x),
-           yaxt = "n",
-           xaxt = "n",
-           ylab = "",
-           xlab = "Observed Score (on a scale from -7 to 7)")
-      axis(1, at = seq(min_x, max_x), labels = seq(min_x, max_x, 1), las = 1)
-      abline(v = seq(min_x, max_x, 1),
-             lty = 2,
-             col = "grey")
-      
-      # only plot data if there's something to plot
-      if (length(values$means) > 0) {
-        dif <- values$means[counter]
-        group <- values$grouplist[counter]
-        
-        if(group == 1){
-          points(x = dif,
-                 y = 0.5,
-                 pch = 16,
-                 cex = 2)
-        }
-        if(group == 2){
-          points(x = dif,
-                 y = 0.5,
-                 pch = 15,
-                 cex = 2)
-        }
-      }
-    })
-    # output$results <- renderText({paste("ok") })
-  })  
 
 }
 
