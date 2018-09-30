@@ -51,6 +51,8 @@ ui <- fluidPage(theme= shinytheme("lumen"),
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
   
+  session$allowReconnect(FALSE) #Trying to fix bug by not allowing reconnect.
+  
   values <- reactiveValues(means = list(),
                            grouplist = list())
   
@@ -215,7 +217,7 @@ server <- function(input, output, session) {
 
     data <- c(input$ID, length(values$grouplist), judgement, effect_size, effect_size*direction, (0 + shift_es) * direction, (effect_size + shift_es) * direction, z$estimate[[1]], z$estimate[[2]], (z$estimate[[2]]-z$estimate[[1]]), z$parameter[[1]], z$stat[[1]], z$p.value[[1]], obs_power, d, as.numeric(unlist(means)), as.numeric(unlist(grouplist)))
     # Create a unique file name
-    fileName <- sprintf(as.character(Sys.time()), digest::digest(data))
+    fileName <- sprintf("%s_%s.csv", as.integer(Sys.time()), digest::digest(data))
     # Write the file to the local system
     write.table(
       x = data,
