@@ -149,7 +149,8 @@ server <- function(input, output, session) {
   
   #save data
   data_results <- eventReactive(c(input$noButton, input$yesButton, input$resetButton),  {
-    if (counter == 0) { return("Results will appear here once you have clicked one of the two buttons below. The results will tell you the true effect size and group means that the simulation is based on, the observed difference in your sample, and whether the observed difference differs from zero (p < .05).") }
+    if (counter == 0 | length(values$means) == 0) { return("Results will appear here once you have clicked one of the two buttons below. The results will tell you the true effect size and group means that the simulation is based on, the observed difference in your sample, and whether the observed difference differs from zero (p < .05).") }
+
     means <- values$means
     grouplist <- values$grouplist
     
@@ -191,7 +192,7 @@ server <- function(input, output, session) {
                   ", t(",round(z$parameter[[1]], digits=2),") = ",
                   format(z$stat[[1]], digits = 3, nsmall = 3, scientific = FALSE),
                   ", p = ",format(z$p.value[[1]], digits = 3, nsmall = 3, scientific = FALSE),
-                  ", given an alpha of 0.05. You can click the 'Start A New Trial' button to start again. The app will keep track of your performence.")
+                  ", given an alpha of 0.05. You can click the 'Start A New Trial' button to start again. The app will keep track of your performance.")
     
     #results <- list(out = out, d = d, obs_power = obs_power)
     return(out)
