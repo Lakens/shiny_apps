@@ -85,7 +85,8 @@ server <- function(input, output, session) {
   shinyjs::disable("yesButton")
   shinyjs::disable("sampleButton")
   
-  #Disable buttons (except new trial button) after choice is made ----
+  #Disable buttons ----
+  #(except new trial button) after choice is made
   observeEvent(input$noButton,  {
     shinyjs::disable("noButton")
     shinyjs::disable("yesButton")
@@ -101,6 +102,7 @@ server <- function(input, output, session) {
     values$judgement <- 0
   })
   
+  ## Reset button ----
   observeEvent(c(input$resetButton),  {
     shinyjs::enable("sampleButton")
     shinyjs::disable("resetButton")
@@ -111,9 +113,8 @@ server <- function(input, output, session) {
     values$count <- 0
     values$means <- list()
     values$grouplist <- list()
-    values$trials <- values$trials + 1
     
-    output$results <- renderText({ data_results() })
+    #output$results <- renderText({ data_results() })
     
     output$Plot <- renderPlot({
       plot(NA,
@@ -140,7 +141,7 @@ server <- function(input, output, session) {
     })
   })
   
-  ## Save data ----
+  ## Display results ----
   data_results <- eventReactive(c(input$noButton, 
                                   input$yesButton, 
                                   input$resetButton),  {
@@ -198,7 +199,7 @@ server <- function(input, output, session) {
     return(out)
   })
   
-  ## Generate Plot after Guess
+  ## Generate Plot after Guess and Save Data
   observeEvent(c(input$noButton, input$yesButton),  {
     if (length(values$means) == 0) { return(F) }
     
@@ -252,6 +253,8 @@ server <- function(input, output, session) {
       eol=" "
     )
     
+    values$trials <- values$trials + 1
+    
     output$Plot <- renderPlot({
       plot(NA,
            ylim = c(0, 1),
@@ -265,7 +268,8 @@ server <- function(input, output, session) {
       abline(v = seq(values$min_x, values$max_x, 1),
              lty = 2,
              col = "grey")
-      abline(v = c((0 + values$shift_es) * values$direction, (values$effect_size + values$shift_es) * values$direction),
+      abline(v = c((0 + values$shift_es) * values$direction, 
+                   (values$effect_size + values$shift_es) * values$direction),
              lty = 2,
              lwd = 2,
              col = "red")
@@ -285,7 +289,6 @@ server <- function(input, output, session) {
   
   ## Sample button actions ----
   observeEvent(input$sampleButton, {
-    message("sampleButton()")
     values$count <- values$count + 1
     
     # enable response buttons after 3 observations
