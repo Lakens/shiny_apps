@@ -1,5 +1,5 @@
 #Set working directory
-setwd("C:/Users/Daniel/surfdrive/R/shiny_apps/detect_the_effect/online_responses")
+setwd("data")
 
 #Read excel files in folder
 files <- list.files(pattern = "\\.csv$")
@@ -19,3 +19,15 @@ df_filled <- lapply(datalist,function(x) {
   })
 #combine lists into a dataframe
 all_data <- as.data.frame(do.call(rbind, df_filled))
+
+
+###ANALYSIS----
+str(all_data)
+mean(as.numeric(all_data$V2))
+
+mean(as.numeric(all_data$V2))
+
+#create variable for correct/incorrect
+all_data$correct <- ifelse(as.numeric(all_data$V3) == 0 & (as.numeric(all_data$V4) == 0) | as.numeric(all_data$V3) == 1 & (as.numeric(all_data$V4) > 0),
+                  1,
+                  0)

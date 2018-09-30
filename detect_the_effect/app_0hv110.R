@@ -9,7 +9,7 @@ sd <- 1
 n <- 1
 min_x <- -7
 max_x <- 7
-effect_size <- sample(c(0, 0.2, 0.5, 0.8), 1, 0)
+effect_size <- sample(c(0, 0, 0, 0.2, 0.5, 0.8), 1, 0)
 direction <- sample(c(-1, 1), 1, 0)
 shift_es <- sample(c(0, 0.5, 1), 1, 0)
 
@@ -23,9 +23,11 @@ ui <- fluidPage(theme= shinytheme("lumen"),
 
   # Show a plot of the generated distribution
   sidebarPanel(
-    p("Your task is to guess whether there is a real difference between two groups, one represented by circles, and one represented by squares. To inform your guess, you will sample individual data points from each group."),
-    p("The real difference between the two groups will be randomly decided by the app (and shown after you made your decision). The difference is sometimes zero. The true means for each group lie between -3 and +3 and are randomly determined."),
-    p("Once you are sufficiently certain about whether there is a real difference or not, click one of the buttons at the bottom to submit your choice. Afterwards, the app will reveal whether you were correct. If you want to try again, reload the page."),
+    textInput("ID", "Copy-paste your student ID in the field below", 1234567),
+    h5(effect_size,"Your task is to guess whether there is a real difference between two groups, one represented by circles, and one represented by squares. To inform your guess, you will sample individual data points from each group."),
+    p("The real difference between the two groups will be randomly decided by the app (and shown after you made your decision). The difference is either an effect size of 0, 0.2, 0.5, or 0.8. If there is an effect, it can be positive or negative (i.e., squared can have a higher or lower means than circles)."),
+    h5("You should sample data until you are 80% certain about your decision about whether there is a real difference or not. If you do this task 30 times, you should guess correctly 24 of the 30 times."),
+    p("Click one of the buttons at the bottom to submit your choice. Afterwards, the app will reveal whether you were correct or not. If you want to try again, reload the page (e.g., by pressing F5 on your keyboard or refreshing your browser)."),
     tags$br(),
     #actionButton("trialButton", "Start a New Data Collection Trial"),
 #    h4(uiOutput("effectsize")),
@@ -34,8 +36,8 @@ ui <- fluidPage(theme= shinytheme("lumen"),
   ),
   mainPanel(
     plotOutput("Plot"),
-    actionButton("yesButton", "I think the circle and square groups are equal", style = "float:right; padding:5px; font-size:110%"),
-    actionButton("noButton", "I think the circle and square groups are different", style = "padding:5px; font-size:110%"),
+    actionButton("yesButton", "I think the circle and square groups are equal", style = "float:right; padding:5px; font-size:105%"),
+    actionButton("noButton", "I think the circle and square groups are different", style = "padding:5px; font-size:105%"),
     p(uiOutput("results"))
   )
 )
@@ -121,17 +123,13 @@ server <- function(input, output, session) {
                   " and the observed mean in the square group was ",
                   round(z$estimate[[2]],2),
                   " (thus, the observed difference was ",
-                  round(z$estimate[[1]],2)-round(z$estimate[[2]],2),
+                  round(z$estimate[[2]],2)-round(z$estimate[[1]],2),
                   "). The null hypothesis significance test was ",
                   testoutcome,
                   ", t(",round(z$parameter[[1]], digits=2),") = ",
                   format(z$stat[[1]], digits = 3, nsmall = 3, scientific = FALSE),
                   ", p = ",format(z$p.value[[1]], digits = 3, nsmall = 3, scientific = FALSE),
-                  ", given an alpha of 0.05. Based on the data you sampled you had ",
-                  100*round(obs_power,2),
-                  "% power to detect a difference, based on an observed effect size of d = ",
-                  round(d,2),
-                  ". Reload this website if you want to do this task again.")
+                  ", given an alpha of 0.05. Reload this website if you want to do this task again (e.g., by pressing F5 or refreshing the browser).")
     
     #results <- list(out = out, d = d, obs_power = obs_power)
     return(out)
@@ -156,9 +154,9 @@ server <- function(input, output, session) {
     outputDir <- "responses"
     #set judgment to 0 if no is pressed, to 1 if yes is pressed.
     judgement <- ifelse(input$noButton == 0,0,1) 
-    data <- data.frame(judgement, effect_size, effect_size*direction, (0 + shift_es) * direction, (effect_size + shift_es) * direction, z$estimate[[1]], z$parameter[[1]], z$stat[[1]], z$p.value[[1]], obs_power, d, means, grouplist)
+    data <- data.frame(input$ID, input$sampleButton, judgement, effect_size, effect_size*direction, (0 + shift_es) * direction, (effect_size + shift_es) * direction, z$estimate[[1]], z$parameter[[1]], z$stat[[1]], z$p.value[[1]], obs_power, d, means, grouplist)
     # Create a unique file name
-    fileName <- sprintf(as.character(Sys.time()), digest::digest(data))
+    fileName <- sprintf("%s_%s.csv", as.integer(Sys.time()), digest::digest(data))
     # Write the file to the local system
     write.table(
       x = data,
