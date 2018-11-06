@@ -9,16 +9,6 @@ library(ggplot2)
 
 # . Sidebar ----
 sidebar <- dashboardSidebar(
-  h4("How much larger is group B than group A?"),
-  # . . d_guess slide ----
-  sliderInput("d_guess", "My effect size (d) guess",
-              min = -3, max = 3, value = 0, step = 0.05),
-  # . . submit_guess button ----
-  actionButton("submit_guess", "Submit Guess"),
-  # . . new_sim button ----
-  actionButton("new_sim", "Simulate a new dataset"),
-  
-  # . . plot display options ----
   h4("Display Options"),
   checkboxInput("show_violin", "Violin Plot",value = T),
   checkboxInput("show_boxplot", "BoxPlot",value = F),
@@ -28,6 +18,29 @@ sidebar <- dashboardSidebar(
 # . Body ----
 body <- dashboardBody(
   p("This app will show you a graph of simulated data with a random number of observations in each of two groups and a random effect size. The effect size will be between -3 and 3, your job is to guess the size of the effect."),
+  fluidRow(
+    column(
+      width = 6,
+      box(
+        width = NULL,
+        h4("How much larger is group B than group A?"),
+        # . . d_guess slide ----
+        sliderInput("d_guess", "My effect size (d) guess", min = -3, max = 3, value = 0, step = 0.05)
+      )
+    ),
+    column(
+      width = 6,
+      box(
+        width = NULL,
+                # . . submit_guess button ----
+        actionButton("submit_guess", "Submit Guess"),
+        # . . new_sim button ----
+        actionButton("new_sim", "Simulate a new dataset"),
+        # . . current_es output ----
+        textOutput("current_es")
+      )
+    )
+  ),
   fluidRow( # start row 1
     column( # start column 1
       width = 6,
@@ -36,9 +49,7 @@ body <- dashboardBody(
         # . . current_n output ----
         textOutput("current_n"),
         # . . current_plot plot ----
-        plotOutput("current_plot"),
-        # . . current_es output ----
-        textOutput("current_es")
+        plotOutput("current_plot")
       )
     ), # end column 1
     column( # start column 2
@@ -60,15 +71,15 @@ ui <- dashboardPage(
   body
 )
 
-# Set reactiveValues ----
-app_vals <- reactiveValues(
-  guess_text = "",
-  guess = c(),
-  real = c()
-)
-
 # Define server logic ----
 server <- function(input, output, session) {
+  
+  # Set reactiveValues ----
+  app_vals <- reactiveValues(
+    guess_text = "",
+    guess = c(),
+    real = c()
+  )
 
   # . Set random parameters and simulate data ----
   simdata <- eventReactive(input$new_sim, {
@@ -80,7 +91,11 @@ server <- function(input, output, session) {
     app_vals$n <- sample(Ns, 1)
 
     # set sample effect size
-    app_vals$es <- sample(seq(-3,3,by = 0.05), 1)
+    app_vals$es <- (rnorm(1, 0, 1) %>% 
+                      pmax(-3) %>% 
+                      pmin(3) * 2
+                    ) %>% 
+                    round(1) / 2
 
     # set offset (so one group isn't always at 0)
     app_vals$offset <- sample(seq(-1,1,by = 0.1), 1)
@@ -109,7 +124,7 @@ server <- function(input, output, session) {
   save_guess <- eventReactive(input$submit_guess, {
     app_vals$guess_text <- paste0("You guessed the effect size was d = ",
                              input$d_guess, ". ",
-                             "The graph above shows an effect size of d =",
+                             "The graph below shows an effect size of d = ",
                              app_vals$es, ".")
 
     app_vals$guess[input$submit_guess] <- input$d_guess
