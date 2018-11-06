@@ -12,7 +12,8 @@ sidebar <- dashboardSidebar(
   h4("Display Options"),
   checkboxInput("show_violin", "Violin Plot",value = T),
   checkboxInput("show_boxplot", "BoxPlot",value = F),
-  checkboxInput("show_points", "Points",value = T)
+  checkboxInput("show_points", "Points",value = T),
+  p("This app is not storing your data beyond this session.")
 )
 
 # . Body ----
