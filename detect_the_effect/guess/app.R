@@ -86,6 +86,9 @@ server <- function(input, output, session) {
   simdata <- eventReactive(input$new_sim, {
     # reset guess_text
     app_vals$guess_text <- ""
+    
+    # reset slider
+    updateSliderInput(session, "d_guess", value = 0)
 
     # set sample N between 10 and 500
     Ns <- c(seq(10,100,by = 10),seq(200,500,by = 100))
