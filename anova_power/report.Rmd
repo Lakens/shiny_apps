@@ -1,0 +1,83 @@
+---
+title: "Simulation Results"
+subtitle: "Shiny App developed by Dani&euml;l Lakens and Aaron Caldwell"
+output: pdf_document
+date: '`r format(Sys.time(), "%B %d, %Y")`'
+params:
+  tablePC: NA,
+  tableMain: NA,
+  pvalue_plot1: NA,
+  pvalue_plot2: NA,
+  means_plot: NA,
+  n: NA,
+  padjust: NA,
+  model: NA,
+  design: NA,
+  cor_mat: NA,
+  sigmatrix: NA
+  seed_number: NA
+  nsims: NA
+  alpha_level: NA
+---
+
+
+
+
+Below are the results from the ANOVA simulation app. If you encounter any problems please visit our GitHub page (https://github.com/Lakens/ANOVA_power_simulation) to the raise the issue.
+
+**Study Design**
+
+`r paste(params$design)`
+
+**Model Formula** 
+
+`r paste(params$model)`
+
+The sample size was **`r params$n`** per cell with the following adjustment for multiple comparisons: **`r params$padjust`**. 
+
+**Correlation Matrix**
+```{r echo = FALSE}
+knitr::kable(params$cor_mat)
+```
+
+**Variance-Covariance Matrix**
+```{r echo = FALSE}
+knitr::kable(params$sigmatrix)
+```
+
+```{r, results='asis', echo=FALSE}
+cat("\\newpage")
+```
+
+
+```{r echo = FALSE}
+params$means_plot
+```
+
+
+```{r, results='asis', echo=FALSE}
+cat("\\newpage")
+```
+
+The seed number for this simulation was set at `r paste(params$seed_number)`. 
+A total number of `r paste(params$nsims)` simulations with an alpha level of `r paste(params$alpha_level)`.
+Please re-use this input to replicate the results below.
+
+**ANOVA Power (%) and Effect Sizes (Partial Eta Squared)**
+
+```{r echo = FALSE}
+knitr::kable(params$tableMain)
+
+params$pvalue_plot1
+```
+
+**Multiple Comparisons Power (%) and Effect Sizes (Cohen's d~z~)**
+
+```{r echo = FALSE}
+knitr::kable(params$tablePC)
+
+params$pvalue_plot2
+```
+
+
+
