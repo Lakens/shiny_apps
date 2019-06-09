@@ -1,6 +1,6 @@
 # Shiny Apps Repository of Daniel Lakens
 
-This is a collection of Shiny Apps that accompany papers or that are used for education. These files are made available in case the Shiny server on which they run is unavailable. You can download the files and run them on your own computer using RStudio.
+This is a collection of Shiny Apps that accompany papers or that are used for education. These files are made available in case the Shiny server on which they run is unavailable. You can download the files and run them on your own computer using RStudio. Most apps have both a single app.R file you can run, or a ui.R and server.R file. 
 
 ### ANOVA_power: Software to simulate power for factorial ANOVA designs
 
@@ -42,7 +42,7 @@ This is a collection of Shiny Apps that accompany papers or that are used for ed
 
 For an explanation why researchers should justify their alpha levels, see:
 
-Lakens, D., Adolfi, F. G., Albers, C. J., Anvari, F., Apps, M. A. J., Argamon, S. E., … Zwaan, R. A. (2018). Justify your alpha. Nature Human Behaviour, 2, 168–171. https://doi.org/10.1038/s41562-018-0311-x
+Lakens, D., Adolfi, F. G., Albers, C. J., Anvari, F., Apps, M. A. J., Argamon, S. E., … Zwaan, R. A. (2018). Justify your alpha. Nature Human Behaviour, 2, 168–171.
 
 For a short introduction in why to lower your alpha level as a function of the sample size, see my [blog post](http://daniellakens.blogspot.com/2018/12/testing-whether-observed-data-should.html). For a short introduction on why and how to balance or minimize error rates, see my [other blog post](http://daniellakens.blogspot.com/2019/05/justifying-your-alpha-by-minimizing-or.html)
 
