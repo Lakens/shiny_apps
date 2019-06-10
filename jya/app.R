@@ -17,14 +17,15 @@ ui <- dashboardPage(
             tabItem(tabName = "minimize",
                     fluidRow(
                         box(
-                            title = "Input parameters",
+                            title = "Input parameters and press 'Calculate'",
                             selectInput("error", "Minimize or Balance Error Rates?:",
                                         c("Balance" = "balance",
                                           "Minimize" = "minimal"
                                           )),
                             numericInput("costT1T2", "Relative cost Type 1 and Type 2 errors:", 4),
                             numericInput("priorH1H0", "Prior Probability of H1 compared to H0:", 1),
-                            textAreaInput("power_function", "Power function:", "pwr::pwr.t.test(d = 0.5, n = 64, sig.level = x, type = 'two.sample', alternative = 'two.sided')$power", width = '400px', height = '200px')
+                            textAreaInput("power_function", "Power function:", "pwr::pwr.t.test(d = 0.5, n = 64, sig.level = x, type = 'two.sample', alternative = 'two.sided')$power", width = '400px', height = '200px'),
+                            actionButton("power_start", "Calculate")
                         ),
                         infoBoxOutput("alpha1Box"),
                         infoBoxOutput("beta1Box"),
@@ -39,7 +40,7 @@ ui <- dashboardPage(
                             solidHeader = TRUE, collapsible = TRUE, 
                             "The trickiest thing of using this Shiny app is entering the correct power function. You can provide an analytic power function, either programmed yourself, or from an existing package loading on the server. Then, make sure the alpha value is not set, but specified as x, and that the function itself returns a single value, the power of the test. Finally, if you use existing power functions the shiny app needs to know which package this function is from, and thus the call to the function needs to be precended by the package and '::', so 'pwr::' or 'TOSTER::' or 'ANOVApower::'. Some examples that work are provided below.", tags$br(), tags$br(),
                             "TOSTER::powerTOSTtwo(alpha=x, N=200, low_eqbound_d=-0.4, high_eqbound_d=0.4)", tags$br(), tags$br(),
-                            "pwr::pwr.anova.test(n = 100, k = 2, f = 0.171875, sig.level = 0.05)$power", tags$br(), tags$br(),
+                            "pwr::pwr.anova.test(n = 100, k = 2, f = 0.171875, sig.level = x)$power", tags$br(), tags$br(),
                             "For a more challenging power function, we can use the ANOVApower package by myself and Aaron Caldwell. The power function in the ANOVAexact function is based on a simulation, which takes a while to perform. The optimization function used in this Shiny app needs to perform the power calculation multiple times. Thus, the result takes a while to calculate. Furthermore, the output of the ANOVA_exact function is power as 80%, not 0.8, and thus we actually have to divide the power value by 100 for the Shiny app to return the correct results. Nevertheless, it works.", tags$br(), tags$br(),
                             "ANOVApower::ANOVA_exact(ANOVApower::ANOVA_design(design = '2b', n = 100, mu = c(24, 26.2), sd = 6.4))$main_results$power/100"
                             )
@@ -84,20 +85,26 @@ ui <- dashboardPage(
 )
 
 server <- function(input, output) {
-    output$alpha1Box <- renderInfoBox({
+    stats <- reactive({ 
+        input$power_start
         error <- input$error
-        power_function <- input$power_function
+        power_function <- isolate(input$power_function)
         costT1T2 <- input$costT1T2
         priorH1H0 <- input$priorH1H0
-
+        
         f = function(x, power_function, costT1T2 = 1, priorH1H0 = 1, error = "minimal") {
-            y <- 1 - eval(parse(text=paste(power_function)))
+            tryCatch({
+                y <- 1 - eval(parse(text=paste(power_function)))
+            }, error = function(e) {
+                stop("The function does not work")
+            })
             if(error == "balance"){
                 max((costT1T2*x - priorH1H0*y)/(priorH1H0+1), (priorH1H0*y - costT1T2*x)/(priorH1H0+1))
             } else if (error == "minimal"){
                 (costT1T2*x + priorH1H0*y)/(priorH1H0+1)
             }
         }
+        
         #Run optimize to find the minimum
         res <- stats::optimize(f,
                                c(0, 1),
@@ -112,45 +119,25 @@ server <- function(input, output) {
             beta <- res$objective - res$minimum
         }
         alpha1 = res$minimum
-        infoBox(
-            "Alpha", paste0(round(alpha1, digits = 5)), icon = icon("percent"),
-            color = "purple"
-        )
-    })
-
-    output$beta1Box <- renderInfoBox({
-        error <- input$error
-        power_function <- input$power_function
-        costT1T2 <- input$costT1T2
-        priorH1H0 <- input$priorH1H0
-        
-        f = function(x, power_function, costT1T2 = 1, priorH1H0 = 1, error = "minimal") {
-            y <- 1 - eval(parse(text=paste(power_function)))
-            if(error == "balance"){
-                max((costT1T2*x - priorH1H0*y)/(priorH1H0+1), (priorH1H0*y - costT1T2*x)/(priorH1H0+1))
-            } else if (error == "minimal"){
-                (costT1T2*x + priorH1H0*y)/(priorH1H0+1)
-            }
-        }
-        #Run optimize to find the minimum
-        res <- stats::optimize(f,
-                               c(0, 1),
-                               tol = 0.00001,
-                               power_function = power_function,
-                               costT1T2 = costT1T2,
-                               priorH1H0 = priorH1H0,
-                               error = error)
-        if(error == "balance"){
-            beta <- res$minimum - res$objective
-        } else if (error == "minimal"){
-            beta <- res$objective - res$minimum
-        }
         x = res$minimum
         beta1 = 1 - eval(parse(text=paste(power_function)))
         objective1 = res$objective
         
+        list(alpha1 = paste0(round(alpha1, digits = 5)),
+             beta1 = paste0(round(beta1, digits = 5))
+        )
+    })
+    
+    output$alpha1Box <- renderInfoBox({
         infoBox(
-            "Beta", paste0(round(beta1, digits = 5)), icon = icon("percent"),
+            "Alpha", stats()$alpha1, icon = icon("percent"),
+            color = "purple"
+        )
+    })
+    
+    output$beta1Box <- renderInfoBox({
+        infoBox(
+            "Beta", stats()$beta1, icon = icon("percent"),
             color = "green"
         )
     })
@@ -161,7 +148,7 @@ server <- function(input, output) {
             color = "purple"
         )
     })
-    
+
 }
 # Run the application
 shinyApp(ui, server)
