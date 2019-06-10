@@ -1,1 +1,0 @@
-TBL <- read.csv("input_data.csv")
