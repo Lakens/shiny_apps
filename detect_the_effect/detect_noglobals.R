@@ -103,9 +103,9 @@ server <- function(input, output, session) {
   })
   
   ## Reset button ----
-  observeEvent(c(input$resetButton),  {
-    shinyjs::enable("sampleButton")
-    shinyjs::disable("resetButton")
+  observeEvent(input$resetButton,  {
+    #shinyjs::enable("sampleButton")
+    #shinyjs::disable("resetButton")
     
     values$effect_size <- sample(c(0, 0, 0, 0.2, 0.5, 0.8), 1, 0)
     values$direction <- sample(c(-1, 1), 1, 0)

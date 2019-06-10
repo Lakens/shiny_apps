@@ -51,7 +51,7 @@ ui <- fluidPage(theme= shinytheme("lumen"),
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
   
-  session$allowReconnect(FALSE) #Trying to fix bug by not allowing reconnect.
+  #session$allowReconnect(FALSE) #Trying to fix bug by not allowing reconnect.
   
   values <- reactiveValues(means = list(),
                            grouplist = list())

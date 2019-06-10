@@ -3,7 +3,7 @@ library(pwr)
 library(shinydashboard)
 
 ui <- dashboardPage(
-    dashboardHeader(title = "Justify Your Alpha"),
+    dashboardHeader(title = "TEST Your Alpha"),
     dashboardSidebar(
         sidebarMenu(
             menuItem("Balance/Minimize Error Rates", tabName = "minimize", icon = icon("calculator")),
@@ -19,8 +19,9 @@ ui <- dashboardPage(
                         box(
                             title = "Input parameters",
                             selectInput("error", "Minimize or Balance Error Rates?:",
-                                        c("Minimize" = "minimal",
-                                          "Balance" = "balance")),
+                                        c("Balance" = "balance",
+                                          "Minimize" = "minimal"
+                                          )),
                             numericInput("costT1T2", "Relative cost Type 1 and Type 2 errors:", 4),
                             numericInput("priorH1H0", "Prior Probability of H1 compared to H0:", 1),
                             textAreaInput("power_function", "Power function:", "pwr::pwr.t.test(d = 0.5, n = 64, sig.level = x, type = 'two.sample', alternative = 'two.sided')$power", width = '400px', height = '200px')
@@ -40,7 +41,6 @@ ui <- dashboardPage(
                             numericInput("standardize_N", "Standardize N:", 100)
                         ),
                         infoBoxOutput("alpha2Box")
-                        
                     )
             ),
             
