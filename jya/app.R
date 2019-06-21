@@ -1,5 +1,6 @@
 library(shiny)
 library(pwr)
+library(ggplot2)
 library(shinydashboard)
 
 ui <- dashboardPage(
