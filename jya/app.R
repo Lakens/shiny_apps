@@ -29,6 +29,7 @@ ui <- dashboardPage(
                         ),
                         infoBoxOutput("alpha1Box"),
                         infoBoxOutput("beta1Box"),
+                        box(plotOutput("plot1")),
                         box(title = "Explanation",
                             status = "warning", 
                             solidHeader = TRUE, collapsible = TRUE, 
@@ -123,8 +124,8 @@ server <- function(input, output) {
         beta1 = 1 - eval(parse(text=paste(power_function)))
         objective1 = res$objective
         
-        list(alpha1 = paste0(round(alpha1, digits = 5)),
-             beta1 = paste0(round(beta1, digits = 5))
+        list(alpha1 = format(alpha1, digits = 10, nsmall = 5, scientific = FALSE),
+             beta1 = format(beta1, digits = 10, nsmall = 5, scientific = FALSE)
         )
     })
     
@@ -144,10 +145,44 @@ server <- function(input, output) {
     
     output$alpha2Box <- renderInfoBox({
         infoBox(
-            "Alpha", paste0(round(input$alpha/sqrt(input$N/input$standardize_N), digits = 5)), icon = icon("percent"),
+            "Alpha", paste0(round(input$alpha/sqrt(input$N/input$standardize_N), digits = 10)), icon = icon("percent"),
             color = "purple"
         )
     })
+    observeEvent(input$power_start,  {
+      
+      output$plot1 <- renderPlot({
+        power_function <- isolate(input$power_function)
+        costT1T2 <- input$costT1T2
+        priorH1H0 <- input$priorH1H0
+  
+        alpha_level <- 0
+        alpha_list <- numeric(9999)
+        beta_list <- numeric(9999)
+        w_list <- numeric(9999)
+        w_c_list <- numeric(9999)
+        for(i in 1:9999) {
+          alpha_level <- alpha_level + 0.0001
+          alpha_list[i] <- alpha_level
+          x <- alpha_level
+          beta_list[i] <- 1 - eval(parse(text=paste(power_function)))
+          w_list[i] <- (alpha_level + beta_list[i]) / 2
+          w_c_list[i] <- (costT1T2 * alpha_level + priorH1H0 * beta_list[i]) / (costT1T2 + priorH1H0)
+        }
+        
+        # Create dataframe for plotting
+        plot_data <- data.frame(alpha_list, beta_list, w_list, w_c_list)
+        
+        w_c_alpha_plot <- ggplot(data=plot_data, aes(x=alpha_list, y=w_c_list)) +
+          geom_line(size = 1.3) +
+          #geom_point(aes(x = 0.05, y = (costT1T2 * 0.05 + priorH1H0 * (1 - eval(parse(text=paste(power_function))))) / (priorH1H0 + costT1T2)), color="red", size = 3) +
+          theme_minimal(base_size = 18) +
+          scale_x_continuous("alpha", seq(0,1,0.1)) +
+          scale_y_continuous("weighted combined error rate", seq(0,1,0.1), limits = c(0,1))
+        w_c_alpha_plot
+      })
+    })
+
 
 }
 # Run the application
