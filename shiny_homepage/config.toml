@@ -1,39 +1,32 @@
-baseurl = "/"
+# Site settings
+baseurl = "http://shiny.ieis.tue.nl/"
 languageCode = "en-us"
 title = "Shiny Server Daniel Lakens"
-theme = "hugo-lithium"
-googleAnalytics = ""
-disqusShortname = ""
-ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
+theme = "hugrid"
+# Enter your tracking code to enable Google Analytics
+googleAnalytics = "UA-XXXXXXXX-Y"
 
-[permalinks]
-    post = "/:year/:month/:day/:slug/"
-
-[[menu.main]]
-    name = "About"
-    url = "/about/"
-[[menu.main]]
-    name = "GitHub"
-    url = "https://github.com/Lakens"
-[[menu.main]]
-    name = "Twitter"
-    url = "https://twitter.com/Lakens"
+contentdir = "content"
+datadir = "data"
+layoutdir = "layouts"
+publishdir = "public"
 
 [params]
-    description = "Shiny server of Daniel Lakens at Eindhoven University of Technology."
+    # Meta
+    title = "Shiny Server of Daniel Lakens"
+    subtitle = "A collection of Shiny apps. Apps are created by myself and my colleagues Aaron Caldwell and Marie Delacre, or hosted for colleagues such as Nick Brown and David Colquhoun. The R code for all shiny apps is available on [GitHub](https://github.com/Lakens/shiny_apps)."
+    author = "Daniel Lakens"
+    description = "Shiny Server."
+    keywords = "likelihood, power"
 
-    # options for highlight.js (version, additional languages, and theme)
-    highlightjsVersion = "9.11.0"
-    highlightjsCDN = "//cdn.bootcss.com"
-    highlightjsLang = ["r", "yaml"]
-    highlightjsTheme = "github"
+    # Body background color
+    bodybgcolor = "#f9f9f9"
 
-    MathJaxCDN = "//cdn.bootcss.com"
-    MathJaxVersion = "2.7.1"
+    # Preview container button text
+    buttontext = "Go to the app"
 
-    [params.logo]
-    url = "logo.png"
-    width = 50
-    height = 50
-    alt = "Logo"
+    # Footer text
+    # footertext = "Made by [Codrops](http://tympanus.net/codrops/2013/03/19/thumbnail-grid-with-expanding-preview/), [Hugo](http://gohugo.io) and [me](https://github.com/aerohub)"
 
+    # add extra-css
+    # custom_css = ['css/extra1.css', 'css/extra2.css']
