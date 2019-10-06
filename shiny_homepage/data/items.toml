@@ -47,7 +47,7 @@ image = "images/full/7.png"
 thumb = "images/thumbs/7.png"
 alt = "Suppression Graphics"
 description = "R code to plot graphs of the effect of correlated predictors on beta coefficients in regression."
-url = "http://shiny.ieis.tue.nl/anova_power/"
+url = "http://shiny.ieis.tue.nl/suppressiongraphics/"
 [[items]]
 title = "False positive risk calculations by David Colquhoun"
 image = "images/full/8.png"
