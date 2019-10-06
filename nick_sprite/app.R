@@ -1,6 +1,7 @@
-# rSPRITE - An implementation of SPRITE, from an idea by James Heathers.
-# Written by Nick Brown (nicholasjlbrown@gmail.com), 2018.
-# Thanks to CÃ©dric Batailler for help with the X-axis.
+# Written by Nick Brown (nicholasjlbrown@gmail.com), 2018-2019.
+# This work is licensed under a Creative Commons Attribution 4.0 International License (CC-BY).
+#  See http://creativecommons.org/licenses/by/4.0/
+# Thanks to Cédric Batailler for help with the X-axis.
 
 # Version history
 # 2018-02-19 16:08Z 0.01
@@ -55,6 +56,13 @@
 #   Added note about privatcy to the help text.
 #   Added blank line before download link.
 #   Added "loading" spinner image.
+# 2018-11-08 23:40Z 0.14
+#   Increased the size of the plot area.
+#   Changed help text to point to preprint article instead of James's blog post.
+#   Added CC-BY license.
+#   Fixed a small bug that caused slightly different X-axis widths depending on the data.
+# 2019-06-02 20:56Z 0.15
+#   Fixed a bug that could cause valid SDs to be rejected as too small with means near the scale limits.
 #
 # To do:
 # Check when to turn X-axis numbers sideways, eg 13-77 N=345 M=26 SD=12, one pane.
@@ -67,7 +75,6 @@ library(ggplot2)
 library(gridExtra)
 library(moments)
 library(shiny)
-library("shinycssloaders")
 
 rSprite.huge <- 1e15
 rSprite.dust <- 1e-12
@@ -114,7 +121,6 @@ rSprite.sdLimits <- function (N, tMean, scaleMin, scaleMax, dp) {
   aMin <- floor(tMean)
   bMax <- max(scaleMax, scaleMin + 1, aMin + 1) # sanity check (just scaleMax would normally be ok)
   bMin <- aMin + 1
-
   total <- round(tMean * N)
   for (abm in list(c(aMin, bMin, 1), c(aMax, bMax, 2))) {
     a <- abm[1]
@@ -124,6 +130,13 @@ rSprite.sdLimits <- function (N, tMean, scaleMin, scaleMax, dp) {
     k <- round((total - (N * b)) / (a - b))
     k <- min(max(k, 1), N - 1)   # ensure there is at least one of each of two numbers
     vec <- c(rep(a, k), rep(b, N - k))
+    diff <- sum(vec) - total
+    if ((diff < 0) && (k > 1)) {
+      vec <- c(rep(a, k - 1), abs(diff), rep(b, N - k))
+    }
+    else if ((diff > 0) && ((N - k) > 1)) {
+      vec <- c(rep(a, k), diff, rep(b, N - k - 1))
+    }
     result[m] <- round(sd(vec), dp)
   }
 
@@ -455,11 +468,9 @@ rSprite.buildOneChart <- function (vec, scaleMin, scaleMax, gridSize, xMax, yMax
   axisTitleSize <- c(20, 14, 12, 11, 10, rep(8, 5))[gridSize]
   axisTextSize <- c(16, 12, 10, 9, 8, rep(7, 5))[gridSize]
 
-  grob <- ggplot(df, aes(x=vec)) +
+  grob <- ggplot(df, aes(x=factor(vec, levels=xBreaks))) +
           geom_bar(fill="#0099ff", width=0.9) +
-          expand_limits(x=c(scaleMin, xLimit)) +
-          scale_x_continuous(breaks=xBreaks) +
-# Adam Gruer suggested: aes(x=factor(vec, levels=scaleMin:xLimit)))) + scale_x_discrete(drop=FALSE)
+          scale_x_discrete(drop=FALSE) +
           scale_y_continuous(limits=c(0, yLimit), breaks=yBreaks) +
           theme(axis.title=element_text(size=axisTitleSize)) +
           theme(axis.text=element_text(size=axisTextSize)) +
@@ -542,8 +553,7 @@ rSprite.helpText <- c(
   , " Like any tool, it has the potential to be used incorrectly."
   , " If you ask it do something silly, it will do it, very probably without warning you."
   , "<br/><br/>"
-  , "For more information on SPRITE in general, see"
-  , " <a href=https://hackernoon.com/introducing-sprite-and-the-case-of-the-carthorse-child-58683c2bfeb>here</a>."
+  , "For more information on SPRITE in general, see <a href=https://peerj.com/preprints/26968v1/>here</a>."
   , "<br/><br/>"
   , "Please report bugs to nicholasjlbrown@gmail.com"
   , "<br/><br/>"
@@ -741,8 +751,12 @@ server <- function (input, output, session) {
     })
   }, height=function () {
     min(session$clientData$output_plot_width, 780)
-  })
+  }, width=1200)
 }
+
+#---------- Two-file version: End of server.R ----------
+#---------- Two-file version: Beginning of ui.R (but remove trailing if(1)) ----------
+library(shinycssloaders)
 
 N <- 45
 tMean <- 3.532
@@ -766,7 +780,7 @@ fixedSeed <- 0
 dstep <- c(0.1, 0.01, 0.001)[dp]
 
 ui <- fluidPage(
-  titlePanel("rSPRITE beta 0.13")
+  titlePanel("rSPRITE beta 0.15")
 , sidebarLayout(
     position="left"
   , sidebarPanel(

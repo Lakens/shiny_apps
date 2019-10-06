@@ -10,19 +10,10 @@ fixedValue <- ""
 fixedCount <- ""
 fixedSeed <- 0
 
-#tMean <- 19.4
-#tSD <- 19.9
-#dp <- 1
-#scaleMin <- 0
-#scaleMax <- 41
-#fixedValue <- 0
-#fixedCount <- 21
-#fixedSeed <- 1
-
 dstep <- c(0.1, 0.01, 0.001)[dp]
 
 ui <- fluidPage(
-  titlePanel("rSPRITE beta 0.13")
+  titlePanel("rSPRITE beta 0.15")
 , sidebarLayout(
     position="left"
   , sidebarPanel(
@@ -78,3 +69,5 @@ ui <- fluidPage(
     )
   )
 )
+
+#shinyApp(ui=ui, server=server)
