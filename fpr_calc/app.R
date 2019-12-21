@@ -1,16 +1,22 @@
 library(shiny)
-
+# install.packages("pwr") for unequal n
+#install.packages("pwr")
+library(pwr)  
 
 ui <- fluidPage(
   
  # titlePanel (h2("Misinterpretation of P values [1]",  align = #"right")),
  
-# Radiobuttons fixed by Brendan Halpin  "You can't use the same name for multiple inputs. That is, the inputs in the different conditionalPanels need different names.  
+# Radiobuttons fixed by Brendan Halpin  "You can't use the same name for multiple inputs. That is, the inputs in the different conditionalPanels need different names. 
+  
+# version 1.7 -unequal n  
                 
 
 #===============================
 
-titlePanel (title= (h3("Calculator for False Positive Risk (FPR)", align="center")), windowTitle=("False Positive Risk calculator (FPR")),
+titlePanel (title= (h3("Calculator for False Positive Risk (FPR)",h4("(version for unequal sample sizes)"),align="center")), 
+            
+windowTitle=("False Positive Risk calculator (FPR")),
 
 #titlePanel ("Calculator for false positive risk (FPR)"),
 
@@ -38,19 +44,20 @@ sidebarLayout(
       numericInput("pval3",label = h5("observed P value"),value = 0.05, min = 0, max = 1, step=0.01),
       numericInput("prior3", label = h5("prior probability of real effect"), value = 0.5, min = 0, max = 1, step=0.01)
     ),
-
     inputPanel(
-      numericInput("nsamp",label = h5("Number in each sample"), step = 1, value = 16, min = 2)
+      numericInput("nsamp1",label = h5("Number in sample 1"), step = 1, value = 16, min = 2)
     ),
 
+inputPanel(
+  numericInput("nsamp2",label = h5("Number in sample 2"), step = 1, value = 16, min = 2)
+),
 inputPanel(
   numericInput("effsize",label = h5("Effect size (as multiple of SD)"),step=0.003,min=0.01, value = 1.0)
 ),
     
-    helpText("Please cite this page if you find it useful: False Positive Risk Web Calculator, version 1.6 Longstaff,C. and Colquhoun D, http://fpr-calc.ucl.ac.uk/ Last accessed", Sys.Date())
+    helpText("Please cite this page if you find it useful: False Positive Risk Web Calculator, version 1.7 Longstaff,C. and Colquhoun D, http://fpr-calc.ucl.ac.uk/ Last accessed", Sys.Date())
   ),
-  
-  
+
 #==========================
   mainPanel( 
     tabsetPanel(type="tab",
@@ -65,7 +72,7 @@ inputPanel(
                 tabPanel("Notes",
                          
 helpText(h3("False positive risk calculations")),                
-helpText("This web app was written by Colin Longstaff and David Colquhoun with help from Brendan Halpin."), 
+helpText("This web app was written by Colin Longstaff and David Colquhoun with help from Brendan Halpin. And in ver 1.7, help from Dr Will Parry to fix default for nsamp2."), 
 
 helpText(h4("Statistical considerations")),
 helpText("The question which we ask in refs[1 - 4, 6, 7] is as follows. If you observe a \"significant\" P value after doing a single unbiased experiment, what is the probability that your result is a false positive? \n
@@ -101,9 +108,9 @@ tags$br(),
 "For example effect size = 1 and n = 16 gives power = 0.78. For an effect size of 0.5 SD, n = 61 gives similar power and also a similar FPR etc.  And for an effect size of 0.2 SD, a power of 0.78 requires n = 375, and again this gives similar FPR etc. See ref [7] for more details. \n 
 So choose n so that the calculated power matches that of your experiment."
 ),
-helpText("There is a popular account of the logic involved in ref [4]. And ref [3] has, in section 9, a response to the recent 72 author paper, Benjamin et al  [7], on related topics.  There is a more technical account of the assumptions in ref [7]."),
+helpText("There is a popular account of the logic involved in ref [4]. And ref [3] has, in section 9, a response to the recent 72 author paper, Benjamin et al  [5], on related topics.  There is a more technical account of the assumptions in ref [7]. And a defence of those assumptions in ref [8]."),
 helpText(h4("Versions")),
-helpText("From ver 1.1 onwards, the effect size (expressed as a multiple of the standard deviation of the observations) can be entered. From ver 1.3 onwards, the values of power that are printed out are calculated for P = 0.05 and the specified effect size (expressed as a multiple of the standard deviation of the observations).  In earlier versions they were calculated using the  observed P value).\n Ver 1.4 has updated help notes. \n Ver 1.5 has updated help notes and references. \n Ver 1.6 is unchanged apart from the default radio button selected at start-up is now button 3, rather than button 1."
+helpText("From ver 1.1 onwards, the effect size (expressed as a multiple of the standard deviation of the observations) can be entered. From ver 1.3 onwards, the values of power that are printed out are calculated for P = 0.05 and the specified effect size (expressed as a multiple of the standard deviation of the observations).  In earlier versions they were calculated using the  observed P value).\n Ver 1.4 has updated help notes. \n Ver 1.5 has updated help notes and references. \n Ver 1.6 is unchanged apart from the default radio button selected at start-up is now button 3, rather than button 1.\n Ver 1.7 allows unequal sample sizes (but still assumes same  variance for both samples)."
 ),
 
 helpText(h4("References")),
@@ -129,7 +136,10 @@ tags$br(),
 "6. Colquhoun, D. (2018) Colquhoun D. The false positive risk: a proposal concerning what to do about p-values (version 2) [talk based on that given at EvidenceLive, 2018]",
 tags$a(href="https://www.youtube.com/watch?v=jZWgijUnIxI", "Click for YouTube"),
 tags$br(),
-"7.  Colquhoun, D. (2018)  The false positive risk: a proposal concerning what to do about p values.", tags$em("American Statistician")," (in press).", tags$a(href="https://arxiv.org/abs/1802.04888", "Click for full text"),                                                     tags$br(),
+"7.  Colquhoun, D. (2019)  The false positive risk: a proposal concerning what to do about p values.", tags$em("American Statistician"),".", tags$a(href="https://www.tandfonline.com/doi/full/10.1080/00031305.2018.1529622", "Click for full text"), 
+tags$br(),
+"8.  Colquhoun, D. (2019b)  A response to critiques of \"The reproducibility of research and the misinterpretation of p-values\".", tags$em("Royal Society Open Science"),".", tags$a(href="https://arxiv.org/ftp/arxiv/papers/1905/1905.08338.pdf", "Click for full text"),  
+tags$br(),
  tags$br(),
  "A list of all of DC's publications on p values can be found at ", tags$a(href="http://www.onemol.org.uk/?page_id=456", "Some papers about p values.")
 
@@ -144,8 +154,13 @@ tags$br(),
 )
 
 #=========================================
-server <-  function(input, output){
-  
+server <-  function(input, output,session){
+ # *** observeEvent statement inserted on advice of Dr Will Parry (and 'session' added to line above)
+   observeEvent(input$nsamp1, { #watch for change in first input...
+    #if it changes, update second input to same value...
+    updateNumericInput(session, "nsamp2", value = input$nsamp1) 
+  }) 
+  # *** end of insertion
   
   output$resultsTable<-renderTable({
     
@@ -165,7 +180,8 @@ server <-  function(input, output){
       prior = input$prior3
     }
     #
-    nsamp=input$nsamp   
+    nsamp1=input$nsamp1   
+    nsamp2=input$nsamp2   
     #    
     mymu1=0
     mymu2=input$effsize
@@ -173,9 +189,9 @@ server <-  function(input, output){
     mysd2=1
     sigma=1
     delta1=mymu2-mymu1
-    sdiff=sqrt(sigma^2/nsamp + sigma^2/nsamp)
+    sdiff=sqrt(sigma^2/nsamp1 + sigma^2/nsamp2)
     #    sdiff=sqrt(input$sigma^2/input$nsamp + sigma^2/input$nsamp)
-    df=2*(nsamp-1)
+    df=(nsamp1-1)+(nsamp2-1)
     # Note FPR doesn't need calculation of power for p-equals case  
     #
       if (input$calctype == "calcprior") {
@@ -196,50 +212,51 @@ server <-  function(input, output){
       p1=y1
       #Rearrange result for FPR to calculate prior for given pval
       prior=(p0*(1-FPR))/(p1*FPR + (p0*(1-FPR)))
-      
-      myp=power.t.test(n=nsamp,sd=sigma,delta=delta1,sig.level=pval,type="two.sample",alternative="two.sided",power=NULL)
+      myp=pwr.t2n.test(n1= nsamp1, n2= nsamp2, d=delta1, sig.level= pval, alternative = "two.sided")
+#      myp1=power.t.test(n=nsamp,sd=sigma,delta=delta1,sig.level=pval,type="two.sample",ratio=1,alternative="two.sided",power=NULL)
       power = myp$power
       prior0=pval*(1-FPR)/(pval*(1-FPR) + power*FPR)
       prior1=round(prior,4)    #rounded to 4 sig figs
       prior10=round(prior0,4)
       power1=round(power,4)
 # For print, calculate power for p=0.05 and specified eff size 
-      myp2=power.t.test(n=nsamp,sd=sigma,delta=delta1,sig.level=0.05,type="two.sample",alternative="two.sided",power=NULL)
+      myp2=pwr.t2n.test(n1= nsamp1, n2= nsamp2, d=delta1, sig.level= 0.05, alternative = "two.sided")
+#      myp2=power.t.test(n=nsamp,sd=sigma,delta=delta1,sig.level=0.05,type="two.sample",alternative="two.sided",power=NULL)
       power2 = myp2$power
       power21=round(power2,4)
 #      
-      ResMat<-matrix(c("INPUT", "", "",
-                       "FPR", FPR, "",
-                       "Observed P value", pval, "",
-                       "Observations per sample", nsamp, "",
-                       "Sample1 mean,  sd", mymu1, mysd1,
-                       "Sample2 mean,  sd", mymu2, mysd2,
-                       " Effect size (mult of SD)",input$effsize,"",
-                        "","","",
-                       "OUTPUT", "p-equals case", 
-                         "P-less-than case",
-                       "prior prob of H1", prior1,prior10,
-                       "power (for p = 0.05 and effect size)", power21, power21),
-                        byrow=TRUE, nrow = 11)
+      ResMat<-matrix(c("INPUT", "", "", "","",
+      "FPR", FPR, "","",
+      "Observed P value", pval, "",
+        
+"Sample 1: mean, sd, n1", mymu1, mysd1, nsamp1,
+"Sample 2: mean, sd, n2", mymu2, mysd2,nsamp2,
+" Effect size (mult of SD)",input$effsize,"",
+"",
+"","","","",
+"OUTPUT", "p-equals case",  "P-less-than case","",
+"prior prob of H1", prior1,prior10,"",
+"power (for p = 0.05 and effect size)", power21, power21,""),
+ncol = 4, nrow = 10,byrow=TRUE)
       
       
     }    #end of if (input$calctype == "calcprior")
     #
     #===================================
     if (input$calctype == "calcpval") {
-      pguess=c(10^-8, 0.99999999)   # pval must be between 0 and 1.
+      pguess=c(10^-8, 0.9999999999)   # pval must be between 0 and 1.
       #Define function to calculate FPR 
-      calc.FPR =  function(pval,nsamp,prior,sigma,delta1)
+      calc.FPR =  function(pval,nsamp1,nsamp2,prior,sigma,delta1)
       {
-        sdiff=sqrt(sigma^2/nsamp + sigma^2/nsamp)
-        df=2*(nsamp-1)
+        sdiff=sqrt(sigma^2/nsamp1 + sigma^2/nsamp2)
+        df=(nsamp1-1)+(nsamp2-1)
         # Note FPR doesn't need calculation of power for p-equals case  #  
         #under H0, use central t distribution
         tcrit=qt((1-pval/2),df,ncp=0)
         x0=tcrit
         y0=dt(x0,df,0)
         #
-        # under H1 use non-central t distribution
+# under H1 use non-central t distribution
         ncp1=delta1/sdiff     #non-centrality paramater
         x1=x0  #tcrit
         y1=dt(x1,df,ncp=ncp1)
@@ -256,8 +273,10 @@ server <-  function(input, output){
       # end of function calc.FPR
       #===============================
       # Now calc.FPRO, for the p-less-than case
-      calc.FPR0 =  function(pval,nsamp,prior,sigma,delta1){
-        myp=power.t.test(n=nsamp,sd=sigma,delta=delta1,sig.level=pval,type="two.sample",alternative="two.sided",power=NULL)
+     
+      calc.FPR0 =  function(pval,nsamp1,nsamp2,prior,sigma,delta1){
+        myp=pwr.t2n.test(n1= nsamp1, n2= nsamp2, d=delta1, sig.level= pval, alternative = "two.sided")
+#        myp=power.t.test(n=nsamp,sd=sigma,delta=delta1,sig.level=pval,type="two.sample",alternative="two.sided",power=NULL)
         power = myp$power
         PH1=prior
         PH0=1-PH1
@@ -271,49 +290,49 @@ server <-  function(input, output){
       
       
       #
-      # Define functiob, f.root, of pval for given FPR, prior etc. Solve for FPR = FPR1 using uniroot()
-      #   calc.FPR =  function(pval,nsamp,prior,sigma,delta1)
-      f.root = function(pval,nsamp,prior,sigma,delta1)
+      # Define function, f.root, of pval for given FPR, prior etc. Solve for FPR = FPR1 using uniroot()
+      #   calc.FPR =  function(pval,nsamp1,nsamp2,prior,sigma,delta1)
+      f.root = function(pval,nsamp1,nsamp2,prior,sigma,delta1)
       {
-        FPRcalc=calc.FPR(pval,nsamp,prior,sigma,delta1)
+        FPRcalc=calc.FPR(pval,nsamp1,nsamp2,prior,sigma,delta1)
         x= FPRcalc[1]-FPR   #=0 when FPRcalc = FPR!
         return (x)
       }
       
-      plow=f.root(pguess[1],nsamp,prior,sigma,delta1)
-      phi=f.root(pguess[2],nsamp,prior,sigma,delta1)
+      plow=f.root(pguess[1],nsamp1,nsamp2,prior,sigma,delta1)
+      phi=f.root(pguess[2],nsamp1,nsamp2,prior,sigma,delta1)
       
       if(plow*phi>0) {
         pval1=NaN
         LR1=NaN
       } else { 
-        out1=uniroot(f = f.root,nsamp=nsamp,prior=prior,sigma=sigma,delta1=delta1,interval=pguess, tol=10^-10, maxiter=10000, check.conv=TRUE)
+        out1=uniroot(f = f.root,nsamp1=nsamp1,nsamp2=nsamp2,prior=prior,sigma=sigma,delta1=delta1,interval=pguess, tol=10^-10, maxiter=10000, check.conv=TRUE)
         pval1=out1$root   #pval that gives FPR= FPR
-        # calc.FPR =  function(pval,nsamp,prior,sigma,delta1)
-        out11=calc.FPR(pval1,nsamp,prior,sigma,delta1)
+        # calc.FPR =  function(pval,nsamp1,nsamp2,prior,sigma,delta1)
+        out11=calc.FPR(pval1,nsamp1,nsamp2,prior,sigma,delta1)
         LR1=out11[2]
       }
 #====================
 # repeat above for p-less-than case     
       
-      f.root0 = function(pval,nsamp,prior,sigma,delta1)
+      f.root0 = function(pval,nsamp1,nsamp2,prior,sigma,delta1)
       {
-        FPRcalc0=calc.FPR0(pval,nsamp,prior,sigma,delta1)
-        x= FPRcalc0[1]-FPR   #=0 when FPRcalc0 = FPR!
+      FPRcalc0=calc.FPR0(pval,nsamp1,nsamp2,prior,sigma,delta1)
+      x= FPRcalc0[1]-FPR   #=0 when FPRcalc0 = FPR!
         return (x)
       }
       
-      plow=f.root0(pguess[1],nsamp,prior,sigma,delta1)
-      phi=f.root0(pguess[2],nsamp,prior,sigma,delta1)
+      plow=f.root0(pguess[1],nsamp1,nsamp2,prior,sigma,delta1)
+      phi=f.root0(pguess[2],nsamp1,nsamp2,prior,sigma,delta1)
       
       if(plow*phi>0) {
         pval10=NaN
         LR10=NaN
       } else { 
-        out10=uniroot(f = f.root0,nsamp=nsamp,prior=prior,sigma=sigma,delta1=delta1,interval=pguess, tol=10^-10, maxiter=10000, check.conv=TRUE)
+        out10=uniroot(f = f.root0,nsamp1=nsamp1,nsamp2=nsamp2,prior=prior,sigma=sigma,delta1=delta1,interval=pguess, tol=10^-10, maxiter=10000, check.conv=TRUE)
         pval10=out10$root   #pval that gives FPR= FPR
-        # calc.FPR =  function(pval,nsamp,prior,sigma,delta1)
-        out110=calc.FPR0(pval10,nsamp,prior,sigma,delta1)
+        # calc.FPR =  function(pval,nsamp1,nsamp2,prior,sigma,delta1)
+        out110=calc.FPR0(pval10,nsamp1,nsamp2,prior,sigma,delta1)
         LR10=out110[2]
       }
  #
@@ -324,19 +343,17 @@ server <-  function(input, output){
       pval20=round(pval10,6)    # 6 sig figs
       LR20=round(LR10,4)  
       
-      ResMat<-matrix(c("INPUT", "", "",
-                       "FPR", FPR, "",
-                       "Prior prob of H1=", prior, "",
-                       "observations per sample", nsamp, "",
-                       "Sample1 mean,  sd", mymu1, mysd1,
-                       "Sample2 mean,  sd", mymu2, mysd2,
-                       " Effect size (mult of SD)",input$effsize,"",
-                       "","","",            
-                       "OUTPUT", "p-equals case",
-                       "p-less-than case",
-                       "p value", pval2, pval20,
-                       "Lik, ratio, L(H1)/L(H0)", LR2,LR20),
-                     byrow=TRUE, nrow = 11)
+      ResMat<-matrix(c("INPUT", "", "","",
+      "FPR", FPR, "","",
+      "Prior prob of H1=", prior, "","",
+      "Sample 1: mean, sd, n1", mymu1, mysd1, nsamp1,
+     "Sample 2: mean, sd, n2", mymu2, mysd2,nsamp2,
+   " Effect size (mult of SD)",input$effsize,"","",
+"","","","",            
+ "OUTPUT", "p-equals case", "p-less-than case","",
+"p value", pval2, pval20,"",
+"Lik, ratio, L(H1)/L(H0)", LR2,LR20,""),
+nrow = 10,ncol=4,byrow=TRUE)
       
     }    #end of if (input$calctype == "calcpval")
     
@@ -359,7 +376,8 @@ server <-  function(input, output){
       #FPR
       LR1=p1/p0
       
-      myp4=power.t.test(n=nsamp,sd=sigma,delta=delta1,sig.level=pval,type="two.sample",alternative="two.sided",power=NULL)
+      myp4=pwr.t2n.test(n1= nsamp1, n2= nsamp2, d=delta1, sig.level= pval, alternative = "two.sided")      
+#      myp4=power.t.test(n=nsamp,sd=sigma,delta=delta1,sig.level=pval,type="two.sample",alternative="two.sided",power=NULL)
       power = myp4$power
       PH1=prior
       PH0=1-PH1
@@ -372,34 +390,30 @@ server <-  function(input, output){
       FPR1=round(FPR,4)
       FPR10 = round(FPR0,4)
       # Print power for p = 0.05 and specified effect size
-      mypp=power.t.test(n=nsamp,sd=sigma,delta=delta1,sig.level=0.05,type="two.sample",alternative="two.sided",power=NULL)
+      mypp=pwr.t2n.test(n1= nsamp1, n2= nsamp2, d=delta1, sig.level= 0.05, alternative = "two.sided")
+#      mypp=power.t.test(n=nsamp,sd=sigma,delta=delta1,sig.level=0.05,type="two.sample",alternative="two.sided",power=NULL)
       powerp = mypp$power
       powerp1 = round(powerp,4)
       #
-      
-      ResMat<-matrix(c("INPUT", "", "",
-                       "Observed p value", pval, "",
-                       "prior prob of H1", prior, "",
-                       "observations per sample", nsamp, "",
-                       "Sample1 mean, sd", mymu1, mysd1,
-                       "Sample2 mean, sd", mymu2, mysd2,
-                       " Effect size (mult of SD)",input$effsize,"",
-                       " "," "," ",
-                       "OUTPUT", "p-equals case",
-                       "p-less-than case",
-                       "FPR", FPR1, FPR10,
-                       "Likelihood ratio", LR2, LR20,
-                     "power (for p = 0.05 and effect size)", powerp1, powerp1),
-                     byrow=TRUE, nrow = 12)
-      
+  # 4 columns and 10 rows    
+      ResMat<-matrix(c("INPUT", "", "","",      "Observed p value", pval, "","",               "prior prob of H1", prior, "","",               
+"Sample 1: mean, sd, n1", mymu1, mysd1,nsamp1,
+"Sample 2: mean, sd, n2", mymu2, mysd2,nsamp2,
+" Effect size (mult of SD)",input$effsize,"", "",
+"","","","",
+"OUTPUT","p-equals case","p-less-than case","",
+"FPR", FPR1, FPR10,"",
+"Likelihood ratio", LR2, LR20,"",
+"power (for p = 0.05 and effect size)", powerp1, powerp1,""),
+ nrow = 11,ncol=4,byrow=TRUE)
       
     }    # end of  if (input$calctype == "calcFPR")
     #
     
 #   write.table(ResMat, "clipboard", sep="\t", col.names=T,row.names=F)  #"clipboard works locally only
     
-    colnames(ResMat) = c(" ", " "," ")
-    write.table(ResMat, sep="\t", col.names=T,row.names=F)#
+    colnames(ResMat) = c(" ", " "," "," ")
+    write.table(ResMat, sep="\t", col.names=T,row.names=F)
 #   as.matrix(ResMat)    
     ResMat
 

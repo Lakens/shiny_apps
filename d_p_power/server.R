@@ -19,7 +19,7 @@ server <- function(input, output) {
     pdf2_t <- function(p) 0.5 * dt(qt(p/2,2*N-2,0),2*N-2,ncp)/dt(qt(p/2,2*N-2,0),2*N-2,0) + dt(qt(1-p/2,2*N-2,0),2*N-2,ncp)/dt(qt(1-p/2,2*N-2,0),2*N-2,0)
     par(bg = "aliceblue")
     plot(-10,xlab="P-value", ylab="Density", axes=FALSE,
-         main=substitute(paste("P-value distribution for ", delta == d," and N =",N)), xlim=c(0,1),  ylim=c(0, ymax))
+         main="test", xlim=c(0,1),  ylim=c(0, ymax))
     abline(v = seq(0,1,0.1), h = seq(0,ymax,5), col = "lightgray", lty = 1)
     axis(side=1, at=seq(0,1, 0.1), labels=seq(0,1,0.1))
     axis(side=2)

@@ -1,5 +1,6 @@
 library(shiny)
 library(shinythemes)
+options(scipen = 999999999)
 ui <- fluidPage(theme=shinytheme("flatly"),
   titlePanel("Likelihood Ratio for Mixed Results"),
   sidebarLayout(

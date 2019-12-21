@@ -12,10 +12,9 @@ ui <- fluidPage(titlePanel("Distribution of Cohen's d, p-values, and power curve
                   ),
                   mainPanel(
                     plotOutput("plot_d", width = "1004px", height = "500px"),
-                    splitLayout(style = "border: 1px solid silver:", cellWidths = c(500,500),cellHeights = c(800,800), 
+                    splitLayout(style = "border: 1px solid silver:", cellWidths = c(500,500),
                                 plotOutput("pdf"),
-                                plotOutput("cdf")
-                    ),
+                                plotOutput("cdf")),
                     splitLayout(style = "border: 1px solid silver:", cellWidths = c(500,500), 
                                 plotOutput("power_plot"),
                                 plotOutput("power_plot_d")
